@@ -13,6 +13,9 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { api } from "../lib/api";
 import { useModelsStore } from "../stores/models";
+import { useApiConfigStore } from "../stores/apiConfig";
+import { ConnectionStatusBar } from "../components/ConnectionStatusBar";
+import { Toaster } from "../components/ui/sonner";
 
 function NotFoundComponent() {
   return (
@@ -117,14 +120,13 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function ModelsBootstrap() {
   const setModels = useModelsStore((s) => s.setModels);
-  const loaded = useModelsStore((s) => s.loaded);
+  const baseUrl = useApiConfigStore((s) => s.baseUrl);
   useEffect(() => {
-    if (loaded) return;
     api
       .getModels()
       .then((m) => setModels(Array.isArray(m) ? m : []))
       .catch(() => setModels([]));
-  }, [loaded, setModels]);
+  }, [baseUrl, setModels]);
   return null;
 }
 
@@ -135,7 +137,11 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <ModelsBootstrap />
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <div className="pb-12">
+        <Outlet />
+      </div>
+      <ConnectionStatusBar />
+      <Toaster />
     </QueryClientProvider>
   );
 }

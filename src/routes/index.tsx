@@ -9,6 +9,7 @@ import { SubmitOverlay } from "@/components/questionnaire/SubmitOverlay";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useRecommendationStore } from "@/stores/recommendation";
+import { ApiConfig } from "@/components/ApiConfig";
 import { AlertCircle, ArrowRight, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -72,7 +73,10 @@ function QuestionnaireScreen() {
               AI Recommender
             </span>
           </div>
-          <span className="text-xs text-muted-foreground">Step 1 of 2 — Questionnaire</span>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-muted-foreground">Step 1 of 2 — Questionnaire</span>
+            <ApiConfig />
+          </div>
         </div>
       </header>
 

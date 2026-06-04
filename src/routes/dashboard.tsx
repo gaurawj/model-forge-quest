@@ -5,7 +5,10 @@ import { SummaryBar } from "@/components/dashboard/SummaryBar";
 import { ControlsPanel } from "@/components/dashboard/ControlsPanel";
 import { SdlcTab } from "@/components/dashboard/tabs/SdlcTab";
 import { FinanceTab } from "@/components/dashboard/tabs/FinanceTab";
-import { PlaceholderTab } from "@/components/dashboard/tabs/Placeholder";
+import { ModelsTab } from "@/components/dashboard/tabs/ModelsTab";
+import { CompareTab } from "@/components/dashboard/tabs/CompareTab";
+import { OptimizationTab } from "@/components/dashboard/tabs/OptimizationTab";
+import { ApiConfig } from "@/components/ApiConfig";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sparkles, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -43,12 +46,15 @@ function DashboardScreen() {
               <div className="text-[11px] text-muted-foreground">Recommendation dashboard</div>
             </div>
           </div>
-          <Button asChild size="sm" variant="ghost">
-            <Link to="/">
-              <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
-              New questionnaire
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <ApiConfig />
+            <Button asChild size="sm" variant="ghost">
+              <Link to="/">
+                <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
+                New questionnaire
+              </Link>
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -69,9 +75,9 @@ function DashboardScreen() {
 
             <TabsContent value="sdlc"><SdlcTab /></TabsContent>
             <TabsContent value="finance"><FinanceTab /></TabsContent>
-            <TabsContent value="models"><PlaceholderTab title="Model Explorer" /></TabsContent>
-            <TabsContent value="compare"><PlaceholderTab title="Compare Models" /></TabsContent>
-            <TabsContent value="optimization"><PlaceholderTab title="Optimization Suggestions" /></TabsContent>
+            <TabsContent value="models"><ModelsTab /></TabsContent>
+            <TabsContent value="compare"><CompareTab /></TabsContent>
+            <TabsContent value="optimization"><OptimizationTab /></TabsContent>
           </Tabs>
         </div>
       </main>
