@@ -11,6 +11,8 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { api } from "../lib/api";
+import { useModelsStore } from "../stores/models";
 
 function NotFoundComponent() {
   return (
