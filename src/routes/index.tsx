@@ -77,6 +77,7 @@ function QuestionnaireScreen() {
             <span className="text-xs text-muted-foreground">Step 1 of 2 — Questionnaire</span>
             <ApiConfig />
           </div>
+        </div>
       </header>
 
       <main className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-6 py-10 lg:grid-cols-[1fr_360px]">
