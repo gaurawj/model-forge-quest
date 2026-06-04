@@ -4,8 +4,9 @@ import { useState } from "react";
 import { api } from "@/lib/api";
 import type { Answers, Questionnaire } from "@/lib/types";
 import { QuestionRenderer } from "@/components/questionnaire/QuestionRenderer";
-import { InfoPanel } from "@/components/questionnaire/InfoPanel";
+import { QuestionList } from "@/components/questionnaire/QuestionList";
 import { SubmitOverlay } from "@/components/questionnaire/SubmitOverlay";
+
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useRecommendationStore } from "@/stores/recommendation";
@@ -98,17 +99,29 @@ function QuestionnaireScreen() {
           )}
 
           {q.isError && (
-            <Card className="border-destructive/30 bg-destructive/5 p-6">
+            <Card className="border-amber-500/30 bg-amber-500/5 p-6">
               <div className="flex items-start gap-3">
-                <AlertCircle className="mt-0.5 h-5 w-5 text-destructive" />
-                <div>
-                  <div className="text-sm font-medium">Could not load questionnaire</div>
+                <AlertCircle className="mt-0.5 h-5 w-5 text-amber-400" />
+                <div className="flex-1">
+                  <div className="text-sm font-medium">API not connected yet</div>
                   <div className="mt-1 text-xs text-muted-foreground">
-                    {(q.error as Error)?.message ?? "Network error"}
+                    {(q.error as Error)?.message ?? "Could not reach the recommendation backend."}
+                    {" "}Configure the API endpoint in the header, then retry to load the questionnaire.
                   </div>
                   <Button size="sm" variant="outline" className="mt-3" onClick={() => q.refetch()}>
                     Retry
                   </Button>
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {!q.isLoading && !q.isError && !q.data && (
+            <Card className="border-border bg-card p-10 text-center">
+              <div className="mx-auto max-w-sm">
+                <div className="text-sm font-medium text-foreground">No questions available</div>
+                <div className="mt-1 text-xs text-muted-foreground">
+                  The backend returned an empty questionnaire.
                 </div>
               </div>
             </Card>
@@ -124,12 +137,13 @@ function QuestionnaireScreen() {
               </div>
               <div className="space-y-6">
                 {section.questions.map((question) => (
-                  <QuestionRenderer
-                    key={question.id}
-                    question={question}
-                    value={answers[question.id]}
-                    onChange={(v) => setAnswers((a) => ({ ...a, [question.id]: v }))}
-                  />
+                  <div key={question.id} id={`q-${question.id}`} className="scroll-mt-24">
+                    <QuestionRenderer
+                      question={question}
+                      value={answers[question.id]}
+                      onChange={(v) => setAnswers((a) => ({ ...a, [question.id]: v }))}
+                    />
+                  </div>
                 ))}
               </div>
             </Card>
@@ -153,10 +167,20 @@ function QuestionnaireScreen() {
           )}
         </section>
 
-        <InfoPanel />
+        <QuestionList
+          questionnaire={q.data}
+          answers={answers}
+          isLoading={q.isLoading}
+          isError={q.isError}
+          onJump={(id) => {
+            const el = document.getElementById(`q-${id}`);
+            if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+          }}
+        />
       </main>
 
       <SubmitOverlay open={mutation.isPending} />
+
     </div>
   );
 }
