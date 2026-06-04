@@ -113,11 +113,25 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+function ModelsBootstrap() {
+  const setModels = useModelsStore((s) => s.setModels);
+  const loaded = useModelsStore((s) => s.loaded);
+  useEffect(() => {
+    if (loaded) return;
+    api
+      .getModels()
+      .then((m) => setModels(Array.isArray(m) ? m : []))
+      .catch(() => setModels([]));
+  }, [loaded, setModels]);
+  return null;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
     <QueryClientProvider client={queryClient}>
+      <ModelsBootstrap />
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
     </QueryClientProvider>
