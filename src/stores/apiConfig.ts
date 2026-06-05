@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { detectMixedContent } from "@/lib/mixedContent";
 
 export type ConnectionStatus = "idle" | "connecting" | "connected" | "error";
 
@@ -21,6 +22,8 @@ interface ApiConfigState {
   status: ConnectionStatus;
   message: string | null;
   lastCheckedAt: number | null;
+  mixedContentBlocked: boolean;
+  mixedContentReason: string | null;
   setBaseUrl: (url: string) => void;
   setStatus: (s: ConnectionStatus, message?: string | null) => void;
   testConnection: () => Promise<boolean>;
@@ -31,6 +34,8 @@ export const useApiConfigStore = create<ApiConfigState>((set, get) => ({
   status: "idle",
   message: null,
   lastCheckedAt: null,
+  mixedContentBlocked: false,
+  mixedContentReason: null,
   setBaseUrl: (url) => {
     const clean = url.trim().replace(/\/+$/, "");
     try {
@@ -38,13 +43,31 @@ export const useApiConfigStore = create<ApiConfigState>((set, get) => ({
     } catch {
       /* ignore */
     }
-    set({ baseUrl: clean, status: "idle", message: null });
+    const mc = detectMixedContent(clean);
+    set({
+      baseUrl: clean,
+      status: "idle",
+      message: null,
+      mixedContentBlocked: mc.blocked,
+      mixedContentReason: mc.reason ?? null,
+    });
   },
   setStatus: (status, message = null) =>
     set({ status, message, lastCheckedAt: Date.now() }),
   testConnection: async () => {
     const { baseUrl } = get();
-    set({ status: "connecting", message: null });
+    const mc = detectMixedContent(baseUrl);
+    if (mc.blocked) {
+      set({
+        status: "error",
+        message: mc.reason ?? "Mixed content blocked by browser",
+        mixedContentBlocked: true,
+        mixedContentReason: mc.reason ?? null,
+        lastCheckedAt: Date.now(),
+      });
+      return false;
+    }
+    set({ status: "connecting", message: null, mixedContentBlocked: false, mixedContentReason: null });
     try {
       const controller = new AbortController();
       const t = setTimeout(() => controller.abort(), 8000);
@@ -67,9 +90,14 @@ export const useApiConfigStore = create<ApiConfigState>((set, get) => ({
       });
       return true;
     } catch (e) {
+      const raw = (e as Error)?.message ?? "Failed to reach API";
+      // Re-check mixed content in case the URL changed since.
+      const mc2 = detectMixedContent(baseUrl);
       set({
         status: "error",
-        message: (e as Error)?.message ?? "Failed to reach API",
+        message: mc2.blocked ? (mc2.reason ?? raw) : raw,
+        mixedContentBlocked: mc2.blocked,
+        mixedContentReason: mc2.reason ?? null,
         lastCheckedAt: Date.now(),
       });
       return false;

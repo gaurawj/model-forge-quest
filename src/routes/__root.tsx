@@ -121,12 +121,16 @@ function RootShell({ children }: { children: ReactNode }) {
 function ModelsBootstrap() {
   const setModels = useModelsStore((s) => s.setModels);
   const baseUrl = useApiConfigStore((s) => s.baseUrl);
+  const testConnection = useApiConfigStore((s) => s.testConnection);
   useEffect(() => {
+    // Auto-probe connection on mount / base URL change so the status bar
+    // reflects reality without the user having to click "Connect & test".
+    testConnection();
     api
       .getModels()
       .then((m) => setModels(Array.isArray(m) ? m : []))
       .catch(() => setModels([]));
-  }, [baseUrl, setModels]);
+  }, [baseUrl, setModels, testConnection]);
   return null;
 }
 
