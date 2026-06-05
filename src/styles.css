@@ -79,6 +79,22 @@
   --sidebar-accent-foreground: oklch(0.92 0 0);
   --sidebar-border: oklch(0.25 0 0);
   --sidebar-ring: oklch(0.62 0.19 256);
+
+  /* Tier accents (Recommended=cyan/blue, Budget=green, Premium=purple/gold) */
+  --tier-recommended-fg: oklch(0.82 0.16 220);
+  --tier-recommended-bg: oklch(0.35 0.12 230 / 0.22);
+  --tier-recommended-border: oklch(0.55 0.18 230 / 0.45);
+
+  --tier-budget-fg: oklch(0.85 0.17 160);
+  --tier-budget-bg: oklch(0.35 0.12 160 / 0.22);
+  --tier-budget-border: oklch(0.55 0.18 160 / 0.45);
+
+  --tier-premium-fg: oklch(0.82 0.16 305);
+  --tier-premium-bg: oklch(0.35 0.14 305 / 0.22);
+  --tier-premium-border: oklch(0.60 0.20 305 / 0.5);
+
+  --glass-bg: oklch(1 0 0 / 0.03);
+  --glass-border: oklch(1 0 0 / 0.06);
 }
 
 @layer base {
