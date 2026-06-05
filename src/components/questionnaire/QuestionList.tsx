@@ -24,8 +24,9 @@ function isAnswered(v: unknown) {
 
 export function QuestionList({ questionnaire, answers, isLoading, isError, onJump }: Props) {
   const status = useApiConfigStore((s) => s.status);
-  const allQuestions = questionnaire?.sections.flatMap((s) =>
-    s.questions.map((q) => ({ ...q, sectionTitle: s.title })),
+  const sections = questionnaire?.sections ?? [];
+  const allQuestions = sections.flatMap((s) =>
+    (s.questions ?? []).map((q) => ({ ...q, sectionTitle: s.title })),
   ) ?? [];
   const answeredCount = allQuestions.filter((q) => isAnswered(answers[q.id])).length;
 
@@ -75,15 +76,15 @@ export function QuestionList({ questionnaire, answers, isLoading, isError, onJum
           </div>
         )}
 
-        {!isLoading && questionnaire && (
+        {!isLoading && sections.length > 0 && (
           <ul className="space-y-4 p-1">
-            {questionnaire.sections.map((section, sIdx) => (
+            {sections.map((section, sIdx) => (
               <li key={section.id}>
                 <div className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                   {sIdx + 1}. {section.title}
                 </div>
                 <ul className="space-y-0.5">
-                  {section.questions.map((q, qIdx) => {
+                  {(section.questions ?? []).map((q, qIdx) => {
                     const answered = isAnswered(answers[q.id]);
                     return (
                       <li key={q.id}>
