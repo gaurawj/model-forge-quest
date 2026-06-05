@@ -85,8 +85,18 @@ export function ApiConfig() {
           )}
           {status === "error" && (
             <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-2 text-xs text-destructive">
-              <AlertCircle className="mt-0.5 h-3.5 w-3.5" />
-              <span>Connection failed. Check the URL and CORS settings.</span>
+              <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              <span>
+                {mixedContentBlocked
+                  ? mixedContentReason
+                  : "Connection failed. Check the URL and CORS settings."}
+              </span>
+            </div>
+          )}
+          {status !== "error" && mixedContentBlocked && (
+            <div className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 p-2 text-xs text-amber-300">
+              <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              <span>{mixedContentReason}</span>
             </div>
           )}
         </div>
