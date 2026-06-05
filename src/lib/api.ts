@@ -1,6 +1,98 @@
 import type { Questionnaire, Model, RecommendationOutput, Answers } from "./types";
 import { useApiConfigStore } from "../stores/apiConfig";
 
+type RawRecord = Record<string, unknown>;
+
+function isRecord(value: unknown): value is RawRecord {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function asString(value: unknown, fallback: string) {
+  return typeof value === "string" && value.trim() ? value : fallback;
+}
+
+function slug(value: string, fallback: string) {
+  const s = value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  return s || fallback;
+}
+
+function unwrapPayload(raw: unknown, preferredKey?: string): unknown {
+  if (!isRecord(raw)) return raw;
+  if (preferredKey && raw[preferredKey] != null) return raw[preferredKey];
+  if (raw.data != null) return raw.data;
+  if (raw.result != null) return raw.result;
+  if (raw.payload != null) return raw.payload;
+  return raw;
+}
+
+function normalizeQuestionnaire(raw: unknown): Questionnaire {
+  const payload = unwrapPayload(raw, "questionnaire");
+  const rawSections = Array.isArray(payload)
+    ? payload
+    : isRecord(payload) && Array.isArray(payload.sections)
+    ? payload.sections
+    : [];
+
+  return {
+    sections: rawSections.map((sectionRaw, sectionIndex) => {
+      const section = isRecord(sectionRaw) ? sectionRaw : {};
+      const title = asString(
+        section.title ?? section.name ?? section.section,
+        `Section ${sectionIndex + 1}`,
+      );
+      const questionsRaw = Array.isArray(section.questions)
+        ? section.questions
+        : Array.isArray(section.items)
+        ? section.items
+        : [];
+
+      return {
+        id: asString(section.id ?? section.section_id ?? section.key, slug(title, `section-${sectionIndex + 1}`)),
+        title,
+        description: typeof section.description === "string" ? section.description : undefined,
+        questions: questionsRaw.map((questionRaw, questionIndex) => {
+          const question = isRecord(questionRaw) ? questionRaw : {};
+          const label = asString(
+            question.label ?? question.question ?? question.text ?? question.title,
+            `Question ${questionIndex + 1}`,
+          );
+          const rawOptions = Array.isArray(question.options) ? question.options : [];
+          const type = asString(question.type ?? question.input_type ?? question.kind, "descriptive");
+          const normalizedType = type === "radio" || type === "select" ? "single_choice" : type === "checkbox" ? "multi_choice" : type;
+
+          return {
+            id: asString(
+              question.id ?? question.question_id ?? question.key,
+              `${slug(title, `section-${sectionIndex + 1}`)}-${slug(label, `q-${questionIndex + 1}`)}`,
+            ),
+            type: ["single_choice", "multi_choice", "descriptive"].includes(normalizedType)
+              ? (normalizedType as "single_choice" | "multi_choice" | "descriptive")
+              : "descriptive",
+            label,
+            description: typeof question.description === "string" ? question.description : undefined,
+            required: Boolean(question.required),
+            placeholder: typeof question.placeholder === "string" ? question.placeholder : undefined,
+            options: rawOptions.map((optionRaw, optionIndex) => {
+              if (typeof optionRaw === "string") return { value: optionRaw, label: optionRaw };
+              const option = isRecord(optionRaw) ? optionRaw : {};
+              const optionLabel = asString(option.label ?? option.name ?? option.text ?? option.value, `Option ${optionIndex + 1}`);
+              return {
+                value: asString(option.value ?? option.id ?? option.key ?? optionLabel, optionLabel),
+                label: optionLabel,
+              };
+            }),
+          };
+        }),
+      };
+    }),
+  };
+}
+
+function normalizeModels(raw: unknown): Model[] {
+  const payload = unwrapPayload(raw, "models");
+  return Array.isArray(payload) ? (payload as Model[]) : [];
+}
+
 function getBase(): string {
   try {
     return useApiConfigStore.getState().baseUrl;
@@ -37,8 +129,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
-  getQuestionnaire: () => request<Questionnaire>("/api/v1/questionnaire"),
-  getModels: () => request<Model[]>("/api/v1/models"),
+  getQuestionnaire: async () => normalizeQuestionnaire(await request<unknown>("/api/v1/questionnaire")),
+  getModels: async () => normalizeModels(await request<unknown>("/api/v1/models")),
   postRecommend: (answers: Answers) =>
     request<RecommendationOutput>("/api/v1/recommend", {
       method: "POST",
