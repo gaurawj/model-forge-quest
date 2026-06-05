@@ -43,11 +43,13 @@ function QuestionnaireScreen() {
     },
   });
 
+  const sections = q.data?.sections ?? [];
+
   const handleSubmit = () => {
     setValidationError(null);
     const missing: string[] = [];
-    q.data?.sections.forEach((s) =>
-      s.questions.forEach((qq) => {
+    sections.forEach((s) =>
+      (s.questions ?? []).forEach((qq) => {
         if (!qq.required) return;
         const v = answers[qq.id];
         if (v == null || v === "" || (Array.isArray(v) && v.length === 0)) {
@@ -127,7 +129,7 @@ function QuestionnaireScreen() {
             </Card>
           )}
 
-          {q.data?.sections.map((section) => (
+          {sections.map((section) => (
             <Card key={section.id} className="border-border bg-card p-6">
               <div className="mb-5">
                 <h2 className="text-base font-semibold text-foreground">{section.title}</h2>
@@ -136,7 +138,7 @@ function QuestionnaireScreen() {
                 )}
               </div>
               <div className="space-y-6">
-                {section.questions.map((question) => (
+                {(section.questions ?? []).map((question) => (
                   <div key={question.id} id={`q-${question.id}`} className="scroll-mt-24">
                     <QuestionRenderer
                       question={question}
@@ -149,7 +151,7 @@ function QuestionnaireScreen() {
             </Card>
           ))}
 
-          {q.data && (
+          {sections.length > 0 && (
             <div className="flex flex-col items-end gap-2">
               {validationError && (
                 <div className="text-xs text-destructive">{validationError}</div>
