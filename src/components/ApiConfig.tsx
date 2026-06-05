@@ -11,7 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Plug, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 
 export function ApiConfig() {
-  const { baseUrl, status, setBaseUrl, testConnection } = useApiConfigStore();
+  const { baseUrl, status, mixedContentBlocked, mixedContentReason, setBaseUrl, testConnection } =
+    useApiConfigStore();
   const [draft, setDraft] = useState(baseUrl);
   const [open, setOpen] = useState(false);
 
