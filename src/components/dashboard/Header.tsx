@@ -7,11 +7,11 @@ import { useApiConfigStore } from "@/stores/apiConfig";
 export function DashboardHeader() {
   const status = useApiConfigStore((s) => s.status);
   const env =
-    status === "connected" ? "Connected" : status === "checking" ? "Checking" : "Offline";
+    status === "connected" ? "Connected" : status === "connecting" ? "Checking" : "Offline";
   const envDot =
     status === "connected"
       ? "bg-emerald-400"
-      : status === "checking"
+      : status === "connecting"
       ? "bg-amber-400 animate-pulse"
       : "bg-zinc-500";
 
