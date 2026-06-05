@@ -1,58 +1,62 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useRecommendationStore } from "@/stores/recommendation";
 import { useApiConfigStore } from "@/stores/apiConfig";
-import { SummaryBar } from "@/components/dashboard/SummaryBar";
-import { ControlsPanel } from "@/components/dashboard/ControlsPanel";
-import { SdlcTab } from "@/components/dashboard/tabs/SdlcTab";
-import { FinanceTab } from "@/components/dashboard/tabs/FinanceTab";
-import { ModelsTab } from "@/components/dashboard/tabs/ModelsTab";
-import { CompareTab } from "@/components/dashboard/tabs/CompareTab";
-import { OptimizationTab } from "@/components/dashboard/tabs/OptimizationTab";
-import { ApiConfig } from "@/components/ApiConfig";
+import { DashboardHeader } from "@/components/dashboard/Header";
+import { ProjectConfigCard } from "@/components/dashboard/ProjectConfigCard";
+import { RecommendationGauge } from "@/components/dashboard/widgets/RecommendationGauge";
+import { RecommendationSummary } from "@/components/dashboard/widgets/RecommendationSummary";
+import { RiskPanel } from "@/components/dashboard/widgets/RiskPanel";
+import { SdlcPlanTab } from "@/components/dashboard/tabs/SdlcPlanTab";
+import { FinancialTab } from "@/components/dashboard/tabs/FinancialTab";
+import { ComparePlansTab } from "@/components/dashboard/tabs/ComparePlansTab";
+import { VendorQuadrantTab } from "@/components/dashboard/tabs/VendorQuadrantTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, ArrowLeft, Inbox, AlertCircle } from "lucide-react";
+import { Inbox, AlertCircle, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { GlassCard } from "@/components/ui/GlassCard";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [
-      { title: "Recommendation Dashboard — AI Model Recommender" },
-      { name: "description", content: "Architecture, model picks, and project cost modeling." },
+      { title: "Nexus AI SDLC Advisor — Toolchain Intelligence" },
+      {
+        name: "description",
+        content:
+          "Executive dashboard comparing Recommended, Budget, and Premium AI toolchains across the SDLC.",
+      },
     ],
   }),
   component: DashboardScreen,
 });
 
-function EmptyDashboardState() {
+function EmptyState() {
   const status = useApiConfigStore((s) => s.status);
   const apiDown = status !== "connected";
   return (
-    <Card className="border-border bg-card p-10">
+    <GlassCard className="p-12">
       <div className="mx-auto flex max-w-md flex-col items-center text-center">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full border border-border bg-background">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-background">
           {apiDown ? (
             <AlertCircle className="h-5 w-5 text-amber-400" />
           ) : (
             <Inbox className="h-5 w-5 text-muted-foreground" />
           )}
         </div>
-        <h2 className="mt-4 text-base font-semibold text-foreground">
-          {apiDown ? "API not connected yet" : "No recommendation generated"}
+        <h2 className="mt-4 text-base font-semibold">
+          {apiDown ? "API not connected yet" : "No analysis generated"}
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
           {apiDown
-            ? "Configure the API endpoint above, then submit the questionnaire to populate the dashboard."
-            : "Fill out the questionnaire and submit it to generate model recommendations and cost estimates."}
+            ? "Configure the API endpoint above, then submit the questionnaire to populate the advisor."
+            : "Complete the questionnaire and submit it to generate the SDLC toolchain plan."}
         </p>
         <Button asChild size="sm" className="mt-5">
           <Link to="/">
-            <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
-            Go to questionnaire
+            <ArrowLeft className="mr-1.5 h-3.5 w-3.5" /> Go to questionnaire
           </Link>
         </Button>
       </div>
-    </Card>
+    </GlassCard>
   );
 }
 
@@ -61,57 +65,52 @@ function DashboardScreen() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur">
-        <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-3">
-          <div className="flex items-center gap-3">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/10 text-primary">
-              <Sparkles className="h-4 w-4" />
-            </div>
-            <div>
-              <div className="text-sm font-semibold tracking-tight">AI Recommender</div>
-              <div className="text-[11px] text-muted-foreground">Recommendation dashboard</div>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <ApiConfig />
-            <Button asChild size="sm" variant="ghost">
-              <Link to="/">
-                <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
-                New questionnaire
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </header>
+      {/* Atmospheric background */}
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute -left-20 top-0 h-[500px] w-[500px] rounded-full bg-cyan-500/[0.05] blur-3xl" />
+        <div className="absolute right-0 top-40 h-[600px] w-[600px] rounded-full bg-purple-500/[0.06] blur-3xl" />
+        <div className="absolute left-1/3 top-1/2 h-[400px] w-[400px] rounded-full bg-blue-500/[0.04] blur-3xl" />
+      </div>
 
-      <main className="mx-auto max-w-[1400px] space-y-5 px-6 py-6">
+      <DashboardHeader />
+
+      <main className="mx-auto max-w-[1600px] space-y-5 px-6 py-6">
+        <ProjectConfigCard />
+
         {!recommendation ? (
-          <EmptyDashboardState />
+          <EmptyState />
         ) : (
           <>
-            <SummaryBar />
-            <div className="grid grid-cols-1 gap-5 lg:grid-cols-[340px_1fr]">
-              <ControlsPanel />
-              <Tabs defaultValue="sdlc" className="space-y-4">
-                <TabsList className="grid w-full grid-cols-5">
-                  <TabsTrigger value="sdlc">SDLC</TabsTrigger>
-                  <TabsTrigger value="finance">Finance</TabsTrigger>
-                  <TabsTrigger value="models">Models</TabsTrigger>
-                  <TabsTrigger value="compare">Compare</TabsTrigger>
-                  <TabsTrigger value="optimization">Optimization</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="sdlc"><SdlcTab /></TabsContent>
-                <TabsContent value="finance"><FinanceTab /></TabsContent>
-                <TabsContent value="models"><ModelsTab /></TabsContent>
-                <TabsContent value="compare"><CompareTab /></TabsContent>
-                <TabsContent value="optimization"><OptimizationTab /></TabsContent>
-              </Tabs>
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_1.4fr_1fr]">
+              <RecommendationGauge />
+              <RecommendationSummary />
+              <RiskPanel />
             </div>
+
+            <Tabs defaultValue="sdlc" className="space-y-4">
+              <TabsList className="bg-white/[0.03] border border-white/[0.06] p-1 h-10">
+                <TabsTrigger value="sdlc" className="data-[state=active]:bg-white/[0.06]">
+                  SDLC Plan
+                </TabsTrigger>
+                <TabsTrigger value="financial" className="data-[state=active]:bg-white/[0.06]">
+                  Financial Analysis
+                </TabsTrigger>
+                <TabsTrigger value="compare" className="data-[state=active]:bg-white/[0.06]">
+                  Compare Plans
+                </TabsTrigger>
+                <TabsTrigger value="quadrant" className="data-[state=active]:bg-white/[0.06]">
+                  Vendor Quadrant
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="sdlc"><SdlcPlanTab /></TabsContent>
+              <TabsContent value="financial"><FinancialTab /></TabsContent>
+              <TabsContent value="compare"><ComparePlansTab /></TabsContent>
+              <TabsContent value="quadrant"><VendorQuadrantTab /></TabsContent>
+            </Tabs>
           </>
         )}
       </main>
     </div>
   );
 }
-
