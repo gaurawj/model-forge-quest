@@ -1,9 +1,24 @@
+import { useState } from "react";
 import type { Question, AnswerValue } from "@/lib/types";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { ChevronDown, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface Props {
   question: Question;
@@ -34,50 +49,27 @@ export function QuestionRenderer({ question, value, onChange }: Props) {
       )}
 
       {question.type === "single_choice" && (
-        <RadioGroup
+        <Select
           value={(value as string) ?? ""}
           onValueChange={(v) => onChange(v)}
-          className="grid gap-2"
         >
-          {question.options?.map((opt) => (
-            <label
-              key={opt.value}
-              className="flex cursor-pointer items-center gap-3 rounded-md border border-border bg-background px-3 py-2.5 text-sm hover:border-primary/40 has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5"
-            >
-              <RadioGroupItem value={opt.value} />
-              <span>{opt.label}</span>
-            </label>
-          ))}
-        </RadioGroup>
+          <SelectTrigger className="bg-background">
+            <SelectValue placeholder="Select an option…" />
+          </SelectTrigger>
+          <SelectContent>
+            {question.options?.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       )}
 
       {question.type === "multi_choice" && (
-        <div className="grid gap-2">
-          {question.options?.map((opt) => {
-            const arr = Array.isArray(value) ? value : [];
-            const checked = arr.includes(opt.value);
-            return (
-              <label
-                key={opt.value}
-                className="flex cursor-pointer items-center gap-3 rounded-md border border-border bg-background px-3 py-2.5 text-sm hover:border-primary/40 has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5"
-              >
-                <Checkbox
-                  checked={checked}
-                  onCheckedChange={(c) => {
-                    const next = c
-                      ? [...arr, opt.value]
-                      : arr.filter((v) => v !== opt.value);
-                    onChange(next);
-                  }}
-                />
-                <span>{opt.label}</span>
-              </label>
-            );
-          })}
-        </div>
+        <MultiSelect question={question} value={value} onChange={onChange} />
       )}
 
-      {/* fallback: unknown type → text */}
       {!["descriptive", "single_choice", "multi_choice"].includes(question.type) && (
         <Input
           value={(value as string) ?? ""}
@@ -86,5 +78,71 @@ export function QuestionRenderer({ question, value, onChange }: Props) {
         />
       )}
     </div>
+  );
+}
+
+function MultiSelect({ question, value, onChange }: Props) {
+  const [open, setOpen] = useState(false);
+  const arr = Array.isArray(value) ? value : [];
+  const opts = question.options ?? [];
+
+  const toggle = (v: string) => {
+    const next = arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v];
+    onChange(next);
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          className="w-full justify-between bg-background font-normal h-auto min-h-9 py-1.5"
+        >
+          <div className="flex flex-wrap gap-1 text-left">
+            {arr.length === 0 && (
+              <span className="text-muted-foreground text-sm">Select one or more…</span>
+            )}
+            {arr.map((v) => {
+              const o = opts.find((x) => x.value === v);
+              return (
+                <Badge
+                  key={v}
+                  variant="secondary"
+                  className="gap-1 text-xs"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggle(v);
+                  }}
+                >
+                  {o?.label ?? v}
+                  <X className="h-3 w-3 opacity-60" />
+                </Badge>
+              );
+            })}
+          </div>
+          <ChevronDown className="h-4 w-4 opacity-50 shrink-0 ml-2" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1" align="start">
+        <div className="max-h-72 overflow-y-auto">
+          {opts.map((opt) => {
+            const checked = arr.includes(opt.value);
+            return (
+              <label
+                key={opt.value}
+                className="flex cursor-pointer items-center gap-2.5 rounded px-2 py-2 text-sm hover:bg-accent"
+              >
+                <Checkbox
+                  checked={checked}
+                  onCheckedChange={() => toggle(opt.value)}
+                />
+                <span>{opt.label}</span>
+              </label>
+            );
+          })}
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
