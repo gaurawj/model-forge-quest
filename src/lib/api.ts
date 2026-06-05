@@ -16,6 +16,15 @@ function slug(value: string, fallback: string) {
   return s || fallback;
 }
 
+function asDescription(value: unknown): string | undefined {
+  if (typeof value === "string" && value.trim()) return value;
+  if (Array.isArray(value)) {
+    const parts = value.filter((v): v is string => typeof v === "string" && v.trim().length > 0);
+    if (parts.length) return parts.join(" • ");
+  }
+  return undefined;
+}
+
 function unwrapPayload(raw: unknown, preferredKey?: string): unknown {
   if (!isRecord(raw)) return raw;
   if (preferredKey && raw[preferredKey] != null) return raw[preferredKey];
