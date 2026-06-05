@@ -58,7 +58,7 @@ function normalizeQuestionnaire(raw: unknown): Questionnaire {
       return {
         id: asString(section.id ?? section.section_id ?? section.key, slug(title, `section-${sectionIndex + 1}`)),
         title,
-        description: typeof section.description === "string" ? section.description : undefined,
+        description: asDescription(section.description),
         questions: questionsRaw.map((questionRaw, questionIndex) => {
           const question = isRecord(questionRaw) ? questionRaw : {};
           const label = asString(
@@ -78,7 +78,7 @@ function normalizeQuestionnaire(raw: unknown): Questionnaire {
               ? (normalizedType as "single_choice" | "multi_choice" | "descriptive")
               : "descriptive",
             label,
-            description: typeof question.description === "string" ? question.description : undefined,
+            description: asDescription(question.description),
             required: Boolean(question.required),
             placeholder: typeof question.placeholder === "string" ? question.placeholder : undefined,
             options: rawOptions.map((optionRaw, optionIndex) => {
