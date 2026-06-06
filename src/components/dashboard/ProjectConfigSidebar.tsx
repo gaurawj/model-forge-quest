@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { useProjectConfigStore, USE_CASES, type ModelStrategy } from "@/stores/projectConfig";
+import { useModelConfigStore } from "@/stores/modelConfig";
 import { useRecommendationStore } from "@/stores/recommendation";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
@@ -12,7 +14,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Play, Save, Share2, FileDown, Settings2 } from "lucide-react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  Play,
+  Save,
+  Share2,
+  FileDown,
+  Settings2,
+  Cpu,
+  ChevronDown,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 const STRATEGIES: { value: ModelStrategy; label: string }[] = [
@@ -32,6 +48,8 @@ function complexityLabel(n: number): string {
 export function ProjectConfigSidebar() {
   const cfg = useProjectConfigStore();
   const updateDraft = useRecommendationStore((s) => s.updateDraft);
+  const [projectOpen, setProjectOpen] = useState(true);
+  const [modelOpen, setModelOpen] = useState(false);
 
   const onAnalyze = () => {
     updateDraft({
@@ -42,99 +60,115 @@ export function ProjectConfigSidebar() {
   };
 
   return (
-    <aside
-      className="hidden lg:flex flex-col w-[340px] shrink-0 border-l border-white/[0.06] bg-white/[0.02] backdrop-blur-sm sticky top-0 h-screen overflow-y-auto"
-    >
+    <aside className="hidden lg:flex flex-col w-[340px] shrink-0 border-l border-white/[0.06] bg-white/[0.02] backdrop-blur-sm sticky top-0 h-screen overflow-y-auto">
       <div className="flex items-center gap-2 border-b border-white/[0.06] px-5 py-4">
         <Settings2 className="h-4 w-4 text-cyan-300" />
         <div>
-          <div className="text-sm font-semibold">Project Configuration</div>
+          <div className="text-sm font-semibold">Configuration</div>
           <div className="text-[11px] text-muted-foreground">
             Tailor the recommendation
           </div>
         </div>
       </div>
 
-      <div className="flex-1 space-y-6 px-5 py-5">
-        <Field label="Use Case">
-          <Select value={cfg.useCase} onValueChange={(v) => cfg.update({ useCase: v })}>
-            <SelectTrigger className="bg-background/40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {USE_CASES.map((u) => (
-                <SelectItem key={u.value} value={u.value}>
-                  {u.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
+      <div className="flex-1 px-3 py-3">
+        <SectionGroup
+          open={projectOpen}
+          onOpenChange={setProjectOpen}
+          icon={<Settings2 className="h-3.5 w-3.5 text-cyan-300" />}
+          title="Project Configuration"
+        >
+          <div className="space-y-5 px-2 py-3">
+            <Field label="Use Case">
+              <Select value={cfg.useCase} onValueChange={(v) => cfg.update({ useCase: v })}>
+                <SelectTrigger className="bg-background/40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {USE_CASES.map((u) => (
+                    <SelectItem key={u.value} value={u.value}>
+                      {u.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
 
-        <Section title="Project Characteristics">
-          <SliderField
-            label="Complexity"
-            value={cfg.complexity}
-            onChange={(v) => cfg.update({ complexity: v })}
-            minLabel="Simple"
-            maxLabel="Complex"
-          />
-          <SliderField
-            label="Codebase Size"
-            value={cfg.codebaseSize}
-            onChange={(v) => cfg.update({ codebaseSize: v })}
-            minLabel="Small"
-            maxLabel="Monorepo"
-          />
-          <SliderField
-            label="Project Duration"
-            value={cfg.durationMonths}
-            onChange={(v) => cfg.update({ durationMonths: v })}
-            min={1}
-            max={36}
-            unit="mo"
-          />
-        </Section>
+            <SubSection title="Project Characteristics">
+              <SliderField
+                label="Complexity"
+                value={cfg.complexity}
+                onChange={(v) => cfg.update({ complexity: v })}
+                minLabel="Simple"
+                maxLabel="Complex"
+              />
+              <SliderField
+                label="Codebase Size"
+                value={cfg.codebaseSize}
+                onChange={(v) => cfg.update({ codebaseSize: v })}
+                minLabel="Small"
+                maxLabel="Monorepo"
+              />
+              <SliderField
+                label="Project Duration"
+                value={cfg.durationMonths}
+                onChange={(v) => cfg.update({ durationMonths: v })}
+                min={1}
+                max={36}
+                unit="mo"
+              />
+            </SubSection>
 
-        <Field label="Project Description">
-          <Textarea
-            value={cfg.description}
-            onChange={(e) => cfg.update({ description: e.target.value })}
-            placeholder="Brief context: goals, scale, constraints…"
-            className="min-h-[88px] bg-background/40 text-xs"
-          />
-        </Field>
+            <Field label="Project Description">
+              <Textarea
+                value={cfg.description}
+                onChange={(e) => cfg.update({ description: e.target.value })}
+                placeholder="Brief context: goals, scale, constraints…"
+                className="min-h-[88px] bg-background/40 text-xs"
+              />
+            </Field>
 
-        <Section title="Compliance">
-          <div className="grid grid-cols-1 gap-2">
-            <ComplianceToggle k="soc2" label="SOC 2" />
-            <ComplianceToggle k="hipaa" label="HIPAA" />
-            <ComplianceToggle k="onPremise" label="On-Premise" />
-            <ComplianceToggle k="zeroDataRetention" label="Zero Data Retention" />
+            <SubSection title="Compliance">
+              <div className="grid grid-cols-1 gap-2">
+                <ComplianceToggle k="soc2" label="SOC 2" />
+                <ComplianceToggle k="hipaa" label="HIPAA" />
+                <ComplianceToggle k="onPremise" label="On-Premise" />
+                <ComplianceToggle k="zeroDataRetention" label="Zero Data Retention" />
+              </div>
+            </SubSection>
+
+            <SubSection title="Model Strategy">
+              <div className="flex flex-wrap gap-1.5">
+                {STRATEGIES.map((s) => {
+                  const active = cfg.strategy === s.value;
+                  return (
+                    <button
+                      key={s.value}
+                      onClick={() => cfg.update({ strategy: s.value })}
+                      className={
+                        "rounded-full border px-3 py-1.5 text-xs transition-colors " +
+                        (active
+                          ? "border-cyan-400/40 bg-cyan-400/10 text-cyan-100"
+                          : "border-white/10 bg-white/[0.03] text-muted-foreground hover:text-foreground")
+                      }
+                    >
+                      {s.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </SubSection>
           </div>
-        </Section>
+        </SectionGroup>
 
-        <Section title="Model Strategy">
-          <div className="flex flex-wrap gap-1.5">
-            {STRATEGIES.map((s) => {
-              const active = cfg.strategy === s.value;
-              return (
-                <button
-                  key={s.value}
-                  onClick={() => cfg.update({ strategy: s.value })}
-                  className={
-                    "rounded-full border px-3 py-1.5 text-xs transition-colors " +
-                    (active
-                      ? "border-cyan-400/40 bg-cyan-400/10 text-cyan-100"
-                      : "border-white/10 bg-white/[0.03] text-muted-foreground hover:text-foreground")
-                  }
-                >
-                  {s.label}
-                </button>
-              );
-            })}
-          </div>
-        </Section>
+        <SectionGroup
+          open={modelOpen}
+          onOpenChange={setModelOpen}
+          icon={<Cpu className="h-3.5 w-3.5 text-purple-300" />}
+          title="Model Configuration"
+        >
+          <ModelConfigSection />
+        </SectionGroup>
       </div>
 
       <div className="space-y-2 border-t border-white/[0.06] px-5 py-4">
@@ -161,6 +195,169 @@ export function ProjectConfigSidebar() {
   );
 }
 
+function ModelConfigSection() {
+  const m = useModelConfigStore();
+  return (
+    <div className="space-y-5 px-2 py-3">
+      <SubSection title="Generation">
+        <SliderField
+          label="Temperature"
+          value={m.temperature}
+          onChange={(v) => m.update({ temperature: v })}
+          min={0}
+          max={2}
+          step={0.1}
+          decimals={1}
+        />
+        <SliderField
+          label="Top-P"
+          value={m.topP}
+          onChange={(v) => m.update({ topP: v })}
+          min={0}
+          max={1}
+          step={0.05}
+          decimals={2}
+        />
+        <SliderField
+          label="Max Output Tokens"
+          value={m.maxOutputTokens}
+          onChange={(v) => m.update({ maxOutputTokens: v })}
+          min={256}
+          max={32768}
+          step={256}
+          unit="tok"
+        />
+      </SubSection>
+
+      <Field label="Reasoning Effort">
+        <Select
+          value={m.reasoningEffort}
+          onValueChange={(v) =>
+            m.update({ reasoningEffort: v as "low" | "medium" | "high" })
+          }
+        >
+          <SelectTrigger className="bg-background/40">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="low">Low</SelectItem>
+            <SelectItem value="medium">Medium</SelectItem>
+            <SelectItem value="high">High</SelectItem>
+          </SelectContent>
+        </Select>
+      </Field>
+
+      <Field label="Latency Target">
+        <Select
+          value={m.latencyTarget}
+          onValueChange={(v) =>
+            m.update({ latencyTarget: v as "realtime" | "interactive" | "batch" })
+          }
+        >
+          <SelectTrigger className="bg-background/40">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="realtime">Realtime (&lt;1s)</SelectItem>
+            <SelectItem value="interactive">Interactive (&lt;5s)</SelectItem>
+            <SelectItem value="batch">Batch (offline)</SelectItem>
+          </SelectContent>
+        </Select>
+      </Field>
+
+      <SubSection title="Optimization">
+        <ToggleRow
+          label="Prompt Caching"
+          checked={m.cacheEnabled}
+          onChange={(c) => m.update({ cacheEnabled: c })}
+        />
+        <ToggleRow
+          label="Batch Inference"
+          checked={m.batchEnabled}
+          onChange={(c) => m.update({ batchEnabled: c })}
+        />
+        <ToggleRow
+          label="Stream Responses"
+          checked={m.streamResponses}
+          onChange={(c) => m.update({ streamResponses: c })}
+        />
+      </SubSection>
+
+      <SubSection title="Budget Guardrails">
+        <SliderField
+          label="Cost Ceiling /1k tok"
+          value={m.costCeilingPer1k}
+          onChange={(v) => m.update({ costCeilingPer1k: v })}
+          min={0.001}
+          max={0.5}
+          step={0.001}
+          decimals={3}
+          unit="$"
+        />
+        <Field label="Fallback Behavior">
+          <Select
+            value={m.fallback}
+            onValueChange={(v) =>
+              m.update({
+                fallback: v as "fail-fast" | "next-tier" | "cheapest-available",
+              })
+            }
+          >
+            <SelectTrigger className="bg-background/40">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="fail-fast">Fail fast</SelectItem>
+              <SelectItem value="next-tier">Use next tier</SelectItem>
+              <SelectItem value="cheapest-available">Cheapest available</SelectItem>
+            </SelectContent>
+          </Select>
+        </Field>
+      </SubSection>
+    </div>
+  );
+}
+
+function SectionGroup({
+  open,
+  onOpenChange,
+  icon,
+  title,
+  children,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  icon: React.ReactNode;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Collapsible
+      open={open}
+      onOpenChange={onOpenChange}
+      className="rounded-lg border border-white/[0.06] bg-white/[0.02] mb-2"
+    >
+      <CollapsibleTrigger className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left">
+        <div className="flex items-center gap-2">
+          {icon}
+          <span className="text-xs font-semibold uppercase tracking-wider">
+            {title}
+          </span>
+        </div>
+        <ChevronDown
+          className={cn(
+            "h-3.5 w-3.5 text-muted-foreground transition-transform",
+            open && "rotate-180",
+          )}
+        />
+      </CollapsibleTrigger>
+      <CollapsibleContent className="border-t border-white/[0.06]">
+        {children}
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
@@ -172,7 +369,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function SubSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="space-y-3">
       <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
@@ -189,7 +386,9 @@ function SliderField({
   onChange,
   min = 1,
   max = 10,
+  step = 1,
   unit,
+  decimals = 0,
   minLabel,
   maxLabel,
 }: {
@@ -198,10 +397,13 @@ function SliderField({
   onChange: (v: number) => void;
   min?: number;
   max?: number;
+  step?: number;
   unit?: string;
+  decimals?: number;
   minLabel?: string;
   maxLabel?: string;
 }) {
+  const display = decimals > 0 ? value.toFixed(decimals) : String(value);
   return (
     <div className="space-y-2">
       <div className="flex items-baseline justify-between">
@@ -209,15 +411,17 @@ function SliderField({
           {label}
         </Label>
         <span className="text-xs font-semibold tabular-nums">
-          {value}
-          {unit ? ` ${unit}` : ` / ${max}`}
+          {unit === "$" ? "$" : ""}
+          {display}
+          {unit && unit !== "$" ? ` ${unit}` : ""}
+          {!unit ? ` / ${max}` : ""}
         </span>
       </div>
       <Slider
         value={[value]}
         min={min}
         max={max}
-        step={1}
+        step={step}
         onValueChange={(v) => onChange(v[0])}
       />
       {(minLabel || maxLabel) && (
@@ -240,9 +444,23 @@ function ComplianceToggle({
   const v = useProjectConfigStore((s) => s.compliance[k]);
   const set = useProjectConfigStore((s) => s.setCompliance);
   return (
+    <ToggleRow label={label} checked={v} onChange={(c) => set(k, c)} />
+  );
+}
+
+function ToggleRow({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
     <div className="flex items-center justify-between rounded-md border border-white/[0.06] bg-background/30 px-3 py-2">
       <span className="text-xs">{label}</span>
-      <Switch checked={v} onCheckedChange={(c) => set(k, c)} />
+      <Switch checked={checked} onCheckedChange={onChange} />
     </div>
   );
 }
