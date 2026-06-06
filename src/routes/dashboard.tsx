@@ -9,6 +9,7 @@ import { SdlcPlanTab } from "@/components/dashboard/tabs/SdlcPlanTab";
 import { FinancialTab } from "@/components/dashboard/tabs/FinancialTab";
 import { ComparePlansTab } from "@/components/dashboard/tabs/ComparePlansTab";
 import { VendorQuadrantTab } from "@/components/dashboard/tabs/VendorQuadrantTab";
+import { ModelExplorerTab } from "@/components/dashboard/tabs/ModelExplorerTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Inbox, AlertCircle, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -98,12 +99,16 @@ function DashboardScreen() {
                   <TabsTrigger value="quadrant" className="data-[state=active]:bg-white/[0.06]">
                     Vendor Quadrant
                   </TabsTrigger>
+                  <TabsTrigger value="models" className="data-[state=active]:bg-white/[0.06]">
+                    Model Explorer
+                  </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="sdlc"><SdlcPlanTab /></TabsContent>
                 <TabsContent value="financial"><FinancialTab /></TabsContent>
                 <TabsContent value="compare"><ComparePlansTab /></TabsContent>
                 <TabsContent value="quadrant"><VendorQuadrantTab /></TabsContent>
+                <TabsContent value="models"><ModelExplorerTab /></TabsContent>
               </Tabs>
             </>
           )}
