@@ -1,6 +1,5 @@
 import { useProjectConfigStore, USE_CASES, type ModelStrategy } from "@/stores/projectConfig";
 import { useRecommendationStore } from "@/stores/recommendation";
-import { GlassCard } from "@/components/ui/GlassCard";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,45 +23,39 @@ const STRATEGIES: { value: ModelStrategy; label: string }[] = [
   { value: "self-hosted", label: "Self Hosted" },
 ];
 
-export function ProjectConfigCard() {
+function complexityLabel(n: number): string {
+  if (n <= 3) return "Low";
+  if (n <= 7) return "Medium";
+  return "High";
+}
+
+export function ProjectConfigSidebar() {
   const cfg = useProjectConfigStore();
   const updateDraft = useRecommendationStore((s) => s.updateDraft);
 
   const onAnalyze = () => {
-    updateDraft({ project_duration_months: cfg.durationMonths, complexity: complexityLabel(cfg.complexity) });
+    updateDraft({
+      project_duration_months: cfg.durationMonths,
+      complexity: complexityLabel(cfg.complexity),
+    });
     toast.success("Toolchain re-analyzed with updated assumptions");
   };
 
   return (
-    <GlassCard className="p-5">
-      <div className="flex items-center justify-between border-b border-white/[0.06] pb-4">
-        <div className="flex items-center gap-2">
-          <Settings2 className="h-4 w-4 text-cyan-300" />
-          <div>
-            <div className="text-sm font-semibold">Project Analysis Setup</div>
-            <div className="text-[11px] text-muted-foreground">
-              Configure use case, scale, and constraints to tailor the toolchain.
-            </div>
+    <aside
+      className="hidden lg:flex flex-col w-[340px] shrink-0 border-l border-white/[0.06] bg-white/[0.02] backdrop-blur-sm sticky top-0 h-screen overflow-y-auto"
+    >
+      <div className="flex items-center gap-2 border-b border-white/[0.06] px-5 py-4">
+        <Settings2 className="h-4 w-4 text-cyan-300" />
+        <div>
+          <div className="text-sm font-semibold">Project Configuration</div>
+          <div className="text-[11px] text-muted-foreground">
+            Tailor the recommendation
           </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button size="sm" variant="ghost" onClick={() => toast.info("Scenario saved")}>
-            <Save className="mr-1.5 h-3.5 w-3.5" /> Save
-          </Button>
-          <Button size="sm" variant="ghost" onClick={() => toast.info("Export prepared")}>
-            <FileDown className="mr-1.5 h-3.5 w-3.5" /> Export
-          </Button>
-          <Button size="sm" variant="ghost" onClick={() => toast.info("Share link copied")}>
-            <Share2 className="mr-1.5 h-3.5 w-3.5" /> Share
-          </Button>
-          <Button size="sm" className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:opacity-90 text-white" onClick={onAnalyze}>
-            <Play className="mr-1.5 h-3.5 w-3.5" /> Analyze Toolchain
-          </Button>
         </div>
       </div>
 
-      {/* Row 1 */}
-      <div className="grid grid-cols-1 gap-5 pt-5 md:grid-cols-2 lg:grid-cols-4">
+      <div className="flex-1 space-y-6 px-5 py-5">
         <Field label="Use Case">
           <Select value={cfg.useCase} onValueChange={(v) => cfg.update({ useCase: v })}>
             <SelectTrigger className="bg-background/40">
@@ -77,56 +70,52 @@ export function ProjectConfigCard() {
             </SelectContent>
           </Select>
         </Field>
-        <SliderField
-          label="Complexity"
-          value={cfg.complexity}
-          onChange={(v) => cfg.update({ complexity: v })}
-          minLabel="Simple"
-          maxLabel="Complex"
-        />
-        <SliderField
-          label="Codebase Size"
-          value={cfg.codebaseSize}
-          onChange={(v) => cfg.update({ codebaseSize: v })}
-          minLabel="Small"
-          maxLabel="Monorepo"
-        />
-        <SliderField
-          label="Project Duration"
-          value={cfg.durationMonths}
-          onChange={(v) => cfg.update({ durationMonths: v })}
-          min={1}
-          max={36}
-          unit="mo"
-        />
-      </div>
 
-      {/* Row 2 */}
-      <div className="pt-5">
+        <Section title="Project Characteristics">
+          <SliderField
+            label="Complexity"
+            value={cfg.complexity}
+            onChange={(v) => cfg.update({ complexity: v })}
+            minLabel="Simple"
+            maxLabel="Complex"
+          />
+          <SliderField
+            label="Codebase Size"
+            value={cfg.codebaseSize}
+            onChange={(v) => cfg.update({ codebaseSize: v })}
+            minLabel="Small"
+            maxLabel="Monorepo"
+          />
+          <SliderField
+            label="Project Duration"
+            value={cfg.durationMonths}
+            onChange={(v) => cfg.update({ durationMonths: v })}
+            min={1}
+            max={36}
+            unit="mo"
+          />
+        </Section>
+
         <Field label="Project Description">
           <Textarea
             value={cfg.description}
             onChange={(e) => cfg.update({ description: e.target.value })}
-            placeholder="Brief context: business goals, integration points, scale, constraints…"
-            className="min-h-[72px] bg-background/40"
+            placeholder="Brief context: goals, scale, constraints…"
+            className="min-h-[88px] bg-background/40 text-xs"
           />
         </Field>
-      </div>
 
-      {/* Row 3 + 4 */}
-      <div className="grid grid-cols-1 gap-5 pt-5 lg:grid-cols-2">
-        <div>
-          <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Compliance</div>
-          <div className="mt-2 grid grid-cols-2 gap-2">
+        <Section title="Compliance">
+          <div className="grid grid-cols-1 gap-2">
             <ComplianceToggle k="soc2" label="SOC 2" />
             <ComplianceToggle k="hipaa" label="HIPAA" />
             <ComplianceToggle k="onPremise" label="On-Premise" />
             <ComplianceToggle k="zeroDataRetention" label="Zero Data Retention" />
           </div>
-        </div>
-        <div>
-          <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Model Strategy</div>
-          <div className="mt-2 flex flex-wrap gap-1.5">
+        </Section>
+
+        <Section title="Model Strategy">
+          <div className="flex flex-wrap gap-1.5">
             {STRATEGIES.map((s) => {
               const active = cfg.strategy === s.value;
               return (
@@ -145,9 +134,30 @@ export function ProjectConfigCard() {
               );
             })}
           </div>
+        </Section>
+      </div>
+
+      <div className="space-y-2 border-t border-white/[0.06] px-5 py-4">
+        <Button
+          size="sm"
+          className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:opacity-90 text-white"
+          onClick={onAnalyze}
+        >
+          <Play className="mr-1.5 h-3.5 w-3.5" /> Analyze Toolchain
+        </Button>
+        <div className="grid grid-cols-3 gap-2">
+          <Button size="sm" variant="ghost" onClick={() => toast.info("Scenario saved")}>
+            <Save className="mr-1 h-3.5 w-3.5" /> Save
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => toast.info("Export prepared")}>
+            <FileDown className="mr-1 h-3.5 w-3.5" /> Export
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => toast.info("Share link copied")}>
+            <Share2 className="mr-1 h-3.5 w-3.5" /> Share
+          </Button>
         </div>
       </div>
-    </GlassCard>
+    </aside>
   );
 }
 
@@ -157,6 +167,17 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <Label className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
         {label}
       </Label>
+      {children}
+    </div>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-3">
+      <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+        {title}
+      </div>
       {children}
     </div>
   );
@@ -187,7 +208,7 @@ function SliderField({
         <Label className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
           {label}
         </Label>
-        <span className="text-sm font-semibold tabular-nums">
+        <span className="text-xs font-semibold tabular-nums">
           {value}
           {unit ? ` ${unit}` : ` / ${max}`}
         </span>
@@ -224,10 +245,4 @@ function ComplianceToggle({
       <Switch checked={v} onCheckedChange={(c) => set(k, c)} />
     </div>
   );
-}
-
-function complexityLabel(n: number): string {
-  if (n <= 3) return "Low";
-  if (n <= 7) return "Medium";
-  return "High";
 }

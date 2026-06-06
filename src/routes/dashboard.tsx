@@ -2,8 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useRecommendationStore } from "@/stores/recommendation";
 import { useApiConfigStore } from "@/stores/apiConfig";
 import { DashboardHeader } from "@/components/dashboard/Header";
-import { ProjectConfigCard } from "@/components/dashboard/ProjectConfigCard";
-import { RecommendationGauge } from "@/components/dashboard/widgets/RecommendationGauge";
+import { ProjectConfigSidebar } from "@/components/dashboard/ProjectConfigSidebar";
 import { RecommendationSummary } from "@/components/dashboard/widgets/RecommendationSummary";
 import { RiskPanel } from "@/components/dashboard/widgets/RiskPanel";
 import { SdlcPlanTab } from "@/components/dashboard/tabs/SdlcPlanTab";
@@ -74,43 +73,44 @@ function DashboardScreen() {
 
       <DashboardHeader />
 
-      <main className="mx-auto max-w-[1600px] space-y-5 px-6 py-6">
-        <ProjectConfigCard />
+      <div className="flex w-full">
+        <main className="flex-1 min-w-0 space-y-5 px-6 py-6">
+          {!recommendation ? (
+            <EmptyState />
+          ) : (
+            <>
+              <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                <RecommendationSummary />
+                <RiskPanel />
+              </div>
 
-        {!recommendation ? (
-          <EmptyState />
-        ) : (
-          <>
-            <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_1.4fr_1fr]">
-              <RecommendationGauge />
-              <RecommendationSummary />
-              <RiskPanel />
-            </div>
+              <Tabs defaultValue="sdlc" className="space-y-4">
+                <TabsList className="bg-white/[0.03] border border-white/[0.06] p-1 h-10">
+                  <TabsTrigger value="sdlc" className="data-[state=active]:bg-white/[0.06]">
+                    SDLC Plan
+                  </TabsTrigger>
+                  <TabsTrigger value="financial" className="data-[state=active]:bg-white/[0.06]">
+                    Financial Analysis
+                  </TabsTrigger>
+                  <TabsTrigger value="compare" className="data-[state=active]:bg-white/[0.06]">
+                    Compare Plans
+                  </TabsTrigger>
+                  <TabsTrigger value="quadrant" className="data-[state=active]:bg-white/[0.06]">
+                    Vendor Quadrant
+                  </TabsTrigger>
+                </TabsList>
 
-            <Tabs defaultValue="sdlc" className="space-y-4">
-              <TabsList className="bg-white/[0.03] border border-white/[0.06] p-1 h-10">
-                <TabsTrigger value="sdlc" className="data-[state=active]:bg-white/[0.06]">
-                  SDLC Plan
-                </TabsTrigger>
-                <TabsTrigger value="financial" className="data-[state=active]:bg-white/[0.06]">
-                  Financial Analysis
-                </TabsTrigger>
-                <TabsTrigger value="compare" className="data-[state=active]:bg-white/[0.06]">
-                  Compare Plans
-                </TabsTrigger>
-                <TabsTrigger value="quadrant" className="data-[state=active]:bg-white/[0.06]">
-                  Vendor Quadrant
-                </TabsTrigger>
-              </TabsList>
+                <TabsContent value="sdlc"><SdlcPlanTab /></TabsContent>
+                <TabsContent value="financial"><FinancialTab /></TabsContent>
+                <TabsContent value="compare"><ComparePlansTab /></TabsContent>
+                <TabsContent value="quadrant"><VendorQuadrantTab /></TabsContent>
+              </Tabs>
+            </>
+          )}
+        </main>
 
-              <TabsContent value="sdlc"><SdlcPlanTab /></TabsContent>
-              <TabsContent value="financial"><FinancialTab /></TabsContent>
-              <TabsContent value="compare"><ComparePlansTab /></TabsContent>
-              <TabsContent value="quadrant"><VendorQuadrantTab /></TabsContent>
-            </Tabs>
-          </>
-        )}
-      </main>
+        <ProjectConfigSidebar />
+      </div>
     </div>
   );
 }
