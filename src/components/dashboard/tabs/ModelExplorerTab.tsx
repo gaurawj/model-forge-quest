@@ -13,18 +13,27 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   Eye,
   Wrench,
   Brain,
   Search,
-  Cpu,
   Loader2,
   AlertCircle,
+  ArrowUpDown,
 } from "lucide-react";
 import type { Model } from "@/lib/types";
 
 function fmtCtx(n?: number) {
   if (!n) return "—";
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1000) return `${(n / 1000).toFixed(0)}K`;
   return String(n);
 }
@@ -33,6 +42,9 @@ function fmtPrice(n?: number) {
   if (n == null) return "—";
   return `$${n.toFixed(2)}`;
 }
+
+type SortKey = "name" | "provider" | "context" | "input" | "output" | "cached";
+type SortDir = "asc" | "desc";
 
 export function ModelExplorerTab() {
   const setModels = useModelsStore((s) => s.setModels);
@@ -59,9 +71,11 @@ export function ModelExplorerTab() {
   const [query, setQuery] = useState("");
   const [provider, setProvider] = useState<string>("all");
   const [capability, setCapability] = useState<string>("all");
+  const [sortKey, setSortKey] = useState<SortKey>("name");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
 
   const filtered = useMemo(() => {
-    return models.filter((m) => {
+    const list = models.filter((m) => {
       if (provider !== "all" && m.provider !== provider) return false;
       if (
         query &&
@@ -73,7 +87,40 @@ export function ModelExplorerTab() {
       if (capability === "reasoning" && !m.supports_reasoning) return false;
       return true;
     });
-  }, [models, provider, query, capability]);
+
+    const dir = sortDir === "asc" ? 1 : -1;
+    const get = (m: Model): string | number => {
+      switch (sortKey) {
+        case "name":
+          return (m.name || m.id).toLowerCase();
+        case "provider":
+          return (m.provider || "").toLowerCase();
+        case "context":
+          return m.context_window ?? 0;
+        case "input":
+          return m.pricing?.prompt ?? 0;
+        case "output":
+          return m.pricing?.completion ?? 0;
+        case "cached":
+          return m.pricing?.input_cache_read ?? 0;
+      }
+    };
+    return [...list].sort((a, b) => {
+      const av = get(a);
+      const bv = get(b);
+      if (av < bv) return -1 * dir;
+      if (av > bv) return 1 * dir;
+      return 0;
+    });
+  }, [models, provider, query, capability, sortKey, sortDir]);
+
+  const toggleSort = (k: SortKey) => {
+    if (sortKey === k) setSortDir(sortDir === "asc" ? "desc" : "asc");
+    else {
+      setSortKey(k);
+      setSortDir(k === "name" || k === "provider" ? "asc" : "desc");
+    }
+  };
 
   if (isLoading && models.length === 0) {
     return (
@@ -140,84 +187,102 @@ export function ModelExplorerTab() {
         </div>
       </GlassCard>
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-        {filtered.map((m) => (
-          <ModelCard key={m.id} model={m} />
-        ))}
-      </div>
+      <GlassCard className="p-0 overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow className="border-white/[0.06] hover:bg-transparent">
+              <SortableHead label="Model" active={sortKey === "name"} dir={sortDir} onClick={() => toggleSort("name")} />
+              <SortableHead label="Provider" active={sortKey === "provider"} dir={sortDir} onClick={() => toggleSort("provider")} />
+              <TableHead className="text-[10px] uppercase tracking-wider">Capabilities</TableHead>
+              <SortableHead label="Context" active={sortKey === "context"} dir={sortDir} onClick={() => toggleSort("context")} className="text-right" />
+              <SortableHead label="Input /1M" active={sortKey === "input"} dir={sortDir} onClick={() => toggleSort("input")} className="text-right" />
+              <SortableHead label="Output /1M" active={sortKey === "output"} dir={sortDir} onClick={() => toggleSort("output")} className="text-right" />
+              <SortableHead label="Cached /1M" active={sortKey === "cached"} dir={sortDir} onClick={() => toggleSort("cached")} className="text-right" />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filtered.map((m) => (
+              <TableRow key={m.id} className="border-white/[0.04] hover:bg-white/[0.03]">
+                <TableCell className="max-w-[320px]">
+                  <div className="truncate text-sm font-medium">{m.name || m.id}</div>
+                  <div className="truncate text-[11px] text-muted-foreground">{m.id}</div>
+                  {m.description && (
+                    <div className="mt-0.5 line-clamp-1 text-[11px] text-muted-foreground/80">
+                      {m.description}
+                    </div>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <Badge variant="outline" className="border-white/10 text-xs text-muted-foreground">
+                    {m.provider || "—"}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-wrap gap-1">
+                    {m.supports_vision && (
+                      <Badge variant="outline" className="gap-1 border-cyan-400/30 text-cyan-200 text-[10px]">
+                        <Eye className="h-3 w-3" /> Vision
+                      </Badge>
+                    )}
+                    {m.supports_tool_calling && (
+                      <Badge variant="outline" className="gap-1 border-emerald-400/30 text-emerald-200 text-[10px]">
+                        <Wrench className="h-3 w-3" /> Tools
+                      </Badge>
+                    )}
+                    {m.supports_reasoning && (
+                      <Badge variant="outline" className="gap-1 border-purple-400/30 text-purple-200 text-[10px]">
+                        <Brain className="h-3 w-3" /> Reasoning
+                      </Badge>
+                    )}
+                    {!m.supports_vision && !m.supports_tool_calling && !m.supports_reasoning && (
+                      <span className="text-[11px] text-muted-foreground">—</span>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell className="text-right tabular-nums text-xs">{fmtCtx(m.context_window)}</TableCell>
+                <TableCell className="text-right tabular-nums text-xs">{fmtPrice(m.pricing?.prompt)}</TableCell>
+                <TableCell className="text-right tabular-nums text-xs">{fmtPrice(m.pricing?.completion)}</TableCell>
+                <TableCell className="text-right tabular-nums text-xs">{fmtPrice(m.pricing?.input_cache_read)}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
 
-      {filtered.length === 0 && (
-        <GlassCard className="p-8 text-center text-sm text-muted-foreground">
-          No models match the current filters.
-        </GlassCard>
-      )}
-    </div>
-  );
-}
-
-function ModelCard({ model }: { model: Model }) {
-  return (
-    <GlassCard className="flex h-full flex-col gap-3 p-4">
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <div className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-            <Cpu className="h-3 w-3" />
-            {model.provider || "Unknown"}
+        {filtered.length === 0 && (
+          <div className="p-8 text-center text-sm text-muted-foreground">
+            No models match the current filters.
           </div>
-          <div className="mt-1 truncate text-sm font-semibold">{model.name || model.id}</div>
-          <div className="truncate text-[11px] text-muted-foreground">{model.id}</div>
-        </div>
-        <div className="flex shrink-0 flex-col items-end gap-1">
-          <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] tabular-nums text-muted-foreground">
-            {fmtCtx(model.context_window)} ctx
-          </span>
-        </div>
-      </div>
-
-      {model.description && (
-        <p className="line-clamp-2 text-xs text-muted-foreground">{model.description}</p>
-      )}
-
-      <div className="flex flex-wrap gap-1.5">
-        {model.supports_vision && (
-          <Badge variant="outline" className="gap-1 border-cyan-400/30 text-cyan-200">
-            <Eye className="h-3 w-3" /> Vision
-          </Badge>
         )}
-        {model.supports_tool_calling && (
-          <Badge variant="outline" className="gap-1 border-emerald-400/30 text-emerald-200">
-            <Wrench className="h-3 w-3" /> Tools
-          </Badge>
-        )}
-        {model.supports_reasoning && (
-          <Badge variant="outline" className="gap-1 border-purple-400/30 text-purple-200">
-            <Brain className="h-3 w-3" /> Reasoning
-          </Badge>
-        )}
-        {(model.capabilities ?? []).slice(0, 3).map((c) => (
-          <Badge key={c} variant="outline" className="border-white/10 text-muted-foreground">
-            {c}
-          </Badge>
-        ))}
-      </div>
-
-      <div className="mt-auto grid grid-cols-3 gap-2 border-t border-white/[0.06] pt-3 text-[11px]">
-        <PriceCell label="Input" value={fmtPrice(model.pricing?.prompt)} />
-        <PriceCell label="Output" value={fmtPrice(model.pricing?.completion)} />
-        <PriceCell label="Cached" value={fmtPrice(model.pricing?.input_cache_read)} />
-      </div>
-    </GlassCard>
+      </GlassCard>
+    </div>
   );
 }
 
-function PriceCell({ label, value }: { label: string; value: string }) {
+function SortableHead({
+  label,
+  active,
+  dir,
+  onClick,
+  className,
+}: {
+  label: string;
+  active: boolean;
+  dir: SortDir;
+  onClick: () => void;
+  className?: string;
+}) {
   return (
-    <div className="flex flex-col">
-      <span className="text-[9px] uppercase tracking-widest text-muted-foreground">{label}</span>
-      <span className="text-xs font-semibold tabular-nums">
-        {value}
-        <span className="ml-0.5 text-[9px] text-muted-foreground">/1M</span>
-      </span>
-    </div>
+    <TableHead className={`text-[10px] uppercase tracking-wider ${className ?? ""}`}>
+      <button
+        onClick={onClick}
+        className={`inline-flex items-center gap-1 hover:text-foreground transition-colors ${
+          active ? "text-foreground" : ""
+        } ${className?.includes("text-right") ? "ml-auto" : ""}`}
+      >
+        {label}
+        <ArrowUpDown className={`h-3 w-3 ${active ? "opacity-100" : "opacity-40"}`} />
+        {active && <span className="text-[9px]">{dir === "asc" ? "↑" : "↓"}</span>}
+      </button>
+    </TableHead>
   );
 }
