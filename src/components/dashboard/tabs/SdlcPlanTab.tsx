@@ -1,19 +1,39 @@
 import { useSdlcRows } from "@/lib/sdlcMapping";
 import { SdlcStageAccordion } from "@/components/dashboard/sdlc/SdlcStageAccordion";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { cn } from "@/lib/utils";
+import { Sparkles, Wallet, Crown } from "lucide-react";
 import type { RecommendationCategory } from "@/lib/types";
 
-const TIER_DOT: Record<RecommendationCategory, string> = {
-  recommended: "bg-cyan-400",
-  budget: "bg-emerald-400",
-  premium: "bg-purple-400",
+const TIER_META: Record<
+  RecommendationCategory,
+  { label: string; pill: string; icon: typeof Sparkles }
+> = {
+  recommended: {
+    label: "Recommended",
+    pill: "border-cyan-400/40 bg-cyan-400/10 text-cyan-200",
+    icon: Sparkles,
+  },
+  budget: {
+    label: "Budget",
+    pill: "border-emerald-400/40 bg-emerald-400/10 text-emerald-200",
+    icon: Wallet,
+  },
+  premium: {
+    label: "Premium",
+    pill: "border-purple-400/40 bg-purple-400/10 text-purple-200",
+    icon: Crown,
+  },
 };
 
-function topModel(rows: ReturnType<typeof useSdlcRows>, tier: RecommendationCategory): string {
+function topModel(
+  rows: ReturnType<typeof useSdlcRows>,
+  tier: RecommendationCategory,
+): string {
   const counts = new Map<string, number>();
   for (const r of rows) {
     const n = r.picks[tier].modelName;
-    if (!n) continue;
+    if (!n || n === "—") continue;
     counts.set(n, (counts.get(n) ?? 0) + 1);
   }
   let best = "";
@@ -43,23 +63,29 @@ export function SdlcPlanTab() {
   return (
     <div className="space-y-3">
       <GlassCard className="overflow-hidden">
-        <div className="grid grid-cols-[1.2fr_1fr_1fr_1fr_auto] items-end gap-4 px-5 py-4">
+        <div className="grid grid-cols-[1.2fr_1fr_1fr_1fr_auto] items-center gap-4 px-5 py-5">
           <div className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
             Stage
           </div>
-          {tiers.map((t) => (
-            <div key={t}>
-              <div className="flex items-center gap-1.5">
-                <span className={`h-1.5 w-1.5 rounded-full ${TIER_DOT[t]}`} />
-                <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
-                  {t}
+          {tiers.map((t) => {
+            const meta = TIER_META[t];
+            const Icon = meta.icon;
+            return (
+              <div key={t} className="flex flex-col items-center gap-2">
+                <div className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
+                  <Icon className="h-3 w-3" /> {meta.label}
+                </div>
+                <span
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-wide",
+                    meta.pill,
+                  )}
+                >
+                  {topModel(rows, t)}
                 </span>
               </div>
-              <div className="mt-0.5 truncate text-sm font-semibold">
-                {topModel(rows, t)}
-              </div>
-            </div>
-          ))}
+            );
+          })}
           <span />
         </div>
       </GlassCard>
