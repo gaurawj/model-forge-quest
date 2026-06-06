@@ -29,14 +29,14 @@ export function SdlcStageAccordion({
         onClick={() => setOpen((o) => !o)}
         className="grid w-full grid-cols-[1.2fr_1fr_1fr_1fr_auto] items-center gap-4 px-5 py-4 text-left transition-colors hover:bg-white/[0.02]"
       >
-        <div>
-          <div className="text-xs uppercase tracking-widest text-muted-foreground">
-            Stage
-          </div>
-          <div className="mt-0.5 text-sm font-semibold">{row.stage.name}</div>
-        </div>
+        <div className="text-sm font-semibold">{row.stage.name}</div>
         {tiers.map((t) => (
-          <ModelCell key={t} tier={t} name={row.picks[t].modelName} cost={row.picks[t].cost} />
+          <div key={t} className="flex items-center gap-1.5">
+            <span className={cn("h-1.5 w-1.5 rounded-full", TIER_DOT[t])} />
+            <span className="text-[11px] uppercase tracking-widest text-muted-foreground">
+              {t}
+            </span>
+          </div>
         ))}
         <ChevronDown
           className={cn(
@@ -75,31 +75,6 @@ export function SdlcStageAccordion({
       )}
     </GlassCard>
   );
-
-  function ModelCell({
-    tier,
-    name,
-    cost,
-  }: {
-    tier: RecommendationCategory;
-    name: string;
-    cost: number;
-  }) {
-    return (
-      <div className="min-w-0">
-        <div className="flex items-center gap-1.5">
-          <span className={cn("h-1.5 w-1.5 rounded-full", TIER_DOT[tier])} />
-          <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
-            {tier}
-          </span>
-        </div>
-        <div className="mt-0.5 truncate text-sm font-medium">{name}</div>
-        <div className="text-[11px] tabular-nums text-muted-foreground">
-          {formatCurrency(cost)} / stage
-        </div>
-      </div>
-    );
-  }
 }
 
 function CostBreakdownCard({
