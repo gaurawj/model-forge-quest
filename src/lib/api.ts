@@ -97,9 +97,46 @@ function normalizeQuestionnaire(raw: unknown): Questionnaire {
   };
 }
 
+function toNum(v: unknown): number | undefined {
+  if (v == null) return undefined;
+  const n = typeof v === "string" ? parseFloat(v) : typeof v === "number" ? v : NaN;
+  return Number.isFinite(n) ? n : undefined;
+}
+
 function normalizeModels(raw: unknown): Model[] {
   const payload = unwrapPayload(raw, "models");
-  return Array.isArray(payload) ? (payload as Model[]) : [];
+  const arr = Array.isArray(payload) ? payload : [];
+  return arr.map((r): Model => {
+    const m = isRecord(r) ? r : {};
+    const arch = isRecord(m.architecture) ? m.architecture : {};
+    const inputMods = Array.isArray(arch.input_modalities) ? (arch.input_modalities as string[]) : [];
+    const supported = Array.isArray(m.supported_parameters) ? (m.supported_parameters as string[]) : [];
+    const pricingRaw = isRecord(m.pricing) ? m.pricing : {};
+    const promptPer1M = toNum(pricingRaw.prompt);
+    const completionPer1M = toNum(pricingRaw.completion);
+    const cacheReadPer1M = toNum(pricingRaw.input_cache_read);
+
+    const provider = asString(m.provider, "");
+    const modelId = asString(m.model_id ?? m.id, asString(m.name, "unknown"));
+    const id = provider ? `${provider}/${modelId}` : modelId;
+
+    return {
+      id,
+      name: asString(m.name, modelId),
+      provider,
+      context_window: toNum(m.context_length ?? m.context_window),
+      capabilities: inputMods,
+      description: typeof m.description === "string" ? m.description : undefined,
+      supports_vision: inputMods.includes("image"),
+      supports_tool_calling: supported.includes("tools") || supported.includes("tool_choice"),
+      supports_reasoning: supported.includes("reasoning") || supported.includes("include_reasoning"),
+      pricing: {
+        prompt: promptPer1M != null ? promptPer1M * 1_000_000 : 0,
+        completion: completionPer1M != null ? completionPer1M * 1_000_000 : 0,
+        input_cache_read: cacheReadPer1M != null ? cacheReadPer1M * 1_000_000 : undefined,
+      },
+    };
+  });
 }
 
 function getBase(): string {
