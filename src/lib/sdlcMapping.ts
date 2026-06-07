@@ -1,5 +1,6 @@
 import { useRecommendationStore } from "@/stores/recommendation";
 import { useModelsStore } from "@/stores/models";
+import { useModelConfigStore } from "@/stores/modelConfig";
 import { calculateCost } from "@/lib/cost";
 import { SDLC_STAGES, type SdlcStage } from "@/lib/sdlcStages";
 import type {
@@ -19,6 +20,9 @@ export interface StagePick {
   contextWindow?: number;
   inputTokens: number;
   outputTokens: number;
+  cachedTokens: number;
+  totalRequests: number;
+  durationMonths: number;
   cost: number;
   confidence: number;
 }
@@ -73,6 +77,9 @@ function buildPick(
       modelName: "—",
       inputTokens: 0,
       outputTokens: 0,
+      cachedTokens: 0,
+      totalRequests: 0,
+      durationMonths,
       cost: 0,
       confidence: 0,
     };
@@ -81,10 +88,11 @@ function buildPick(
   const stageWorkload: WorkloadProfile = {
     ...workload,
     requests_per_user_per_day: workload.requests_per_user_per_day / stagesCount,
+    avg_cached_tokens: workload.cache_eligible ? workload.avg_cached_tokens : 0,
   };
-  const cost = pricing
-    ? calculateCost({ workload: stageWorkload, durationMonths, pricing }).total_project_cost
-    : 0;
+  const breakdown = pricing
+    ? calculateCost({ workload: stageWorkload, durationMonths, pricing })
+    : null;
   const requests =
     stageWorkload.active_users * stageWorkload.requests_per_user_per_day * 30 * durationMonths;
   return {
@@ -95,7 +103,10 @@ function buildPick(
     contextWindow: catalog?.context_window,
     inputTokens: requests * (workload.avg_input_tokens ?? 0),
     outputTokens: requests * (workload.avg_output_tokens ?? 0),
-    cost,
+    cachedTokens: requests * (stageWorkload.avg_cached_tokens ?? 0),
+    totalRequests: requests,
+    durationMonths,
+    cost: breakdown?.total_project_cost ?? 0,
     confidence: baseConfidence,
   };
 }
@@ -104,9 +115,25 @@ export function useSdlcRows(): StageRow[] {
   const rec = useRecommendationStore((s) => s.recommendation);
   const draft = useRecommendationStore((s) => s.draft);
   const models = useModelsStore((s) => s.models);
+  const mc = useModelConfigStore();
 
   return useMemo(() => {
     if (!rec || !draft) return [];
+
+    // Live workload sourced from Model Configuration sidebar controllers.
+    const workload: WorkloadProfile = {
+      ...draft,
+      active_users: mc.active_users,
+      requests_per_user_per_day: mc.requests_per_user_per_day,
+      avg_input_tokens: mc.avg_input_tokens,
+      avg_output_tokens: mc.avg_output_tokens,
+      avg_reasoning_tokens: mc.avg_reasoning_tokens,
+      avg_cached_tokens: mc.avg_cached_tokens,
+      cache_eligible: mc.cache_eligible,
+      project_duration_months: mc.project_duration_months,
+    };
+    const duration = mc.project_duration_months || 1;
+
     const roles = rec.architecture?.roles ?? [];
     const used = new Set<number>();
     const fallback = (cat: RecommendationCategory) =>
@@ -124,8 +151,8 @@ export function useSdlcRows(): StageRow[] {
           role?.recommended_model_id ?? fallbacks.recommended,
           models,
           rec.pricing_information,
-          draft,
-          draft.project_duration_months,
+          workload,
+          duration,
           SDLC_STAGES.length,
           rec.confidence ?? 0.85,
         ),
@@ -133,8 +160,8 @@ export function useSdlcRows(): StageRow[] {
           role?.budget_model_id ?? fallbacks.budget,
           models,
           rec.pricing_information,
-          draft,
-          draft.project_duration_months,
+          workload,
+          duration,
           SDLC_STAGES.length,
           (rec.confidence ?? 0.85) * 0.9,
         ),
@@ -142,13 +169,13 @@ export function useSdlcRows(): StageRow[] {
           role?.premium_model_id ?? fallbacks.premium,
           models,
           rec.pricing_information,
-          draft,
-          draft.project_duration_months,
+          workload,
+          duration,
           SDLC_STAGES.length,
           Math.min(1, (rec.confidence ?? 0.85) * 1.05),
         ),
       };
       return { stage, matchedRole: role, picks };
     });
-  }, [rec, draft, models]);
+  }, [rec, draft, models, mc]);
 }

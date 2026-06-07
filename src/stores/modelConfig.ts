@@ -1,34 +1,38 @@
 import { create } from "zustand";
 
-export type FallbackBehavior = "fail-fast" | "next-tier" | "cheapest-available";
-
 export interface ModelConfig {
-  temperature: number; // 0-2
-  topP: number; // 0-1
-  maxOutputTokens: number; // 256-32768
-  reasoningEffort: "low" | "medium" | "high";
-  cacheEnabled: boolean;
-  batchEnabled: boolean;
-  streamResponses: boolean;
-  costCeilingPer1k: number; // USD per 1k tokens
-  latencyTarget: "realtime" | "interactive" | "batch";
-  fallback: FallbackBehavior;
+  project_duration_months: number;
+  active_users: number;
+  requests_per_user_per_day: number;
+  avg_input_tokens: number;
+  avg_output_tokens: number;
+  avg_reasoning_tokens: number;
+  avg_cached_tokens: number;
+  cache_eligible: boolean;
 }
 
 interface State extends ModelConfig {
   update: (patch: Partial<ModelConfig>) => void;
+  hydrate: (patch: Partial<ModelConfig>) => void;
 }
 
 export const useModelConfigStore = create<State>((set) => ({
-  temperature: 0.3,
-  topP: 0.9,
-  maxOutputTokens: 4096,
-  reasoningEffort: "medium",
-  cacheEnabled: true,
-  batchEnabled: false,
-  streamResponses: true,
-  costCeilingPer1k: 0.05,
-  latencyTarget: "interactive",
-  fallback: "next-tier",
+  project_duration_months: 6,
+  active_users: 1000,
+  requests_per_user_per_day: 5,
+  avg_input_tokens: 2000,
+  avg_output_tokens: 800,
+  avg_reasoning_tokens: 0,
+  avg_cached_tokens: 0,
+  cache_eligible: false,
   update: (patch) => set((s) => ({ ...s, ...patch })),
+  hydrate: (patch) =>
+    set((s) => {
+      const next: Partial<ModelConfig> = {};
+      (Object.keys(patch) as (keyof ModelConfig)[]).forEach((k) => {
+        const v = patch[k];
+        if (v !== undefined && v !== null) (next as Record<string, unknown>)[k] = v;
+      });
+      return { ...s, ...next };
+    }),
 }));
