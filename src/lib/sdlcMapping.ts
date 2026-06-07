@@ -115,9 +115,25 @@ export function useSdlcRows(): StageRow[] {
   const rec = useRecommendationStore((s) => s.recommendation);
   const draft = useRecommendationStore((s) => s.draft);
   const models = useModelsStore((s) => s.models);
+  const mc = useModelConfigStore();
 
   return useMemo(() => {
     if (!rec || !draft) return [];
+
+    // Live workload sourced from Model Configuration sidebar controllers.
+    const workload: WorkloadProfile = {
+      ...draft,
+      active_users: mc.active_users,
+      requests_per_user_per_day: mc.requests_per_user_per_day,
+      avg_input_tokens: mc.avg_input_tokens,
+      avg_output_tokens: mc.avg_output_tokens,
+      avg_reasoning_tokens: mc.avg_reasoning_tokens,
+      avg_cached_tokens: mc.avg_cached_tokens,
+      cache_eligible: mc.cache_eligible,
+      project_duration_months: mc.project_duration_months,
+    };
+    const duration = mc.project_duration_months || 1;
+
     const roles = rec.architecture?.roles ?? [];
     const used = new Set<number>();
     const fallback = (cat: RecommendationCategory) =>
@@ -135,8 +151,8 @@ export function useSdlcRows(): StageRow[] {
           role?.recommended_model_id ?? fallbacks.recommended,
           models,
           rec.pricing_information,
-          draft,
-          draft.project_duration_months,
+          workload,
+          duration,
           SDLC_STAGES.length,
           rec.confidence ?? 0.85,
         ),
@@ -144,8 +160,8 @@ export function useSdlcRows(): StageRow[] {
           role?.budget_model_id ?? fallbacks.budget,
           models,
           rec.pricing_information,
-          draft,
-          draft.project_duration_months,
+          workload,
+          duration,
           SDLC_STAGES.length,
           (rec.confidence ?? 0.85) * 0.9,
         ),
@@ -153,13 +169,13 @@ export function useSdlcRows(): StageRow[] {
           role?.premium_model_id ?? fallbacks.premium,
           models,
           rec.pricing_information,
-          draft,
-          draft.project_duration_months,
+          workload,
+          duration,
           SDLC_STAGES.length,
           Math.min(1, (rec.confidence ?? 0.85) * 1.05),
         ),
       };
       return { stage, matchedRole: role, picks };
     });
-  }, [rec, draft, models]);
+  }, [rec, draft, models, mc]);
 }
