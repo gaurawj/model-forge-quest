@@ -3,8 +3,6 @@ import { ChevronDown, ListChecks, Receipt } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { formatCurrency, formatNumber } from "@/lib/cost";
-import { useProjectConfigStore } from "@/stores/projectConfig";
-import { useRecommendationStore } from "@/stores/recommendation";
 import type { RecommendationCategory } from "@/lib/types";
 import type { StageRow, StagePick } from "@/lib/sdlcMapping";
 
@@ -23,10 +21,6 @@ export function SdlcStageAccordion({
 }) {
   const [open, setOpen] = useState(defaultOpen);
   const tiers: RecommendationCategory[] = ["recommended", "budget", "premium"];
-  const complexity = useProjectConfigStore((s) => s.complexity);
-  const duration = useProjectConfigStore((s) => s.durationMonths);
-  const draft = useRecommendationStore((s) => s.draft);
-  const complexityMultiplier = 0.8 + (complexity / 10) * 0.8; // 0.8x – 1.6x
 
   return (
     <GlassCard className="overflow-hidden">
@@ -65,14 +59,7 @@ export function SdlcStageAccordion({
           </div>
 
           {tiers.map((t) => (
-            <CostBreakdownCard
-              key={t}
-              tier={t}
-              pick={row.picks[t]}
-              perUnitTokens={(draft?.avg_input_tokens ?? 0) + (draft?.avg_output_tokens ?? 0)}
-              complexityMultiplier={complexityMultiplier}
-              durationMonths={duration || 1}
-            />
+            <CostBreakdownCard key={t} tier={t} pick={row.picks[t]} />
           ))}
           <span />
         </div>
@@ -84,38 +71,28 @@ export function SdlcStageAccordion({
 function CostBreakdownCard({
   tier,
   pick,
-  perUnitTokens,
-  complexityMultiplier,
-  durationMonths,
 }: {
   tier: RecommendationCategory;
   pick: StagePick;
-  perUnitTokens: number;
-  complexityMultiplier: number;
-  durationMonths: number;
 }) {
-  const totalTokens = pick.inputTokens + pick.outputTokens;
-  const units = perUnitTokens > 0 ? Math.round(totalTokens / perUnitTokens) : 0;
-  const monthly = pick.cost / Math.max(durationMonths, 1);
-
   return (
     <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-4">
       <div className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
         <Receipt className="h-3 w-3" /> Cost Breakdown
       </div>
       <dl className="mt-3 space-y-1.5 text-xs">
-        <Row label="Per-unit tokens" value={formatNumber(perUnitTokens)} />
-        <Row label={`× ${formatNumber(units)} units`} value={formatNumber(totalTokens)} />
-        <Row label="Complexity multiplier" value={`${complexityMultiplier.toFixed(1)}x`} />
-        <Row label="Input (70%)" value={formatNumber(pick.inputTokens)} />
-        <Row label="Output (30%)" value={formatNumber(pick.outputTokens)} />
+        <Row label="Input Tokens" value={formatNumber(pick.inputTokens)} />
+        <Row label="Output Tokens" value={formatNumber(pick.outputTokens)} />
+        <Row label="Cached Tokens" value={formatNumber(pick.cachedTokens)} />
+        <Row label="Total Requests" value={formatNumber(pick.totalRequests)} />
+        <Row label="Duration" value={`${pick.durationMonths} mo`} />
       </dl>
       <div className="mt-3 flex items-center justify-between border-t border-white/[0.06] pt-3">
         <span className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
-          Est. monthly
+          Projected Cost
         </span>
         <span className={cn("text-sm font-semibold tabular-nums", TIER_TEXT[tier])}>
-          {formatCurrency(monthly)}
+          {formatCurrency(pick.cost)}
         </span>
       </div>
     </div>
@@ -130,3 +107,4 @@ function Row({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+
