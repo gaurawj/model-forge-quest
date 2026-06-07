@@ -20,6 +20,9 @@ export interface StagePick {
   contextWindow?: number;
   inputTokens: number;
   outputTokens: number;
+  cachedTokens: number;
+  totalRequests: number;
+  durationMonths: number;
   cost: number;
   confidence: number;
 }
