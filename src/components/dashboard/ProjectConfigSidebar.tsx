@@ -199,120 +199,71 @@ function ModelConfigSection() {
   const m = useModelConfigStore();
   return (
     <div className="space-y-5 px-2 py-3">
-      <SubSection title="Generation">
+      <SubSection title="Workload">
         <SliderField
-          label="Temperature"
-          value={m.temperature}
-          onChange={(v) => m.update({ temperature: v })}
-          min={0}
-          max={2}
-          step={0.1}
-          decimals={1}
+          label="Project Duration"
+          value={m.project_duration_months}
+          onChange={(v) => m.update({ project_duration_months: v })}
+          min={1}
+          max={36}
+          unit="mo"
         />
         <SliderField
-          label="Top-P"
-          value={m.topP}
-          onChange={(v) => m.update({ topP: v })}
+          label="Active Users"
+          value={m.active_users}
+          onChange={(v) => m.update({ active_users: v })}
           min={0}
-          max={1}
-          step={0.05}
-          decimals={2}
+          max={100000}
+          step={100}
         />
         <SliderField
-          label="Max Output Tokens"
-          value={m.maxOutputTokens}
-          onChange={(v) => m.update({ maxOutputTokens: v })}
-          min={256}
-          max={32768}
-          step={256}
-          unit="tok"
+          label="Requests / User / Day"
+          value={m.requests_per_user_per_day}
+          onChange={(v) => m.update({ requests_per_user_per_day: v })}
+          min={0}
+          max={100}
+          step={1}
         />
       </SubSection>
 
-      <Field label="Reasoning Effort">
-        <Select
-          value={m.reasoningEffort}
-          onValueChange={(v) =>
-            m.update({ reasoningEffort: v as "low" | "medium" | "high" })
-          }
-        >
-          <SelectTrigger className="bg-background/40">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="low">Low</SelectItem>
-            <SelectItem value="medium">Medium</SelectItem>
-            <SelectItem value="high">High</SelectItem>
-          </SelectContent>
-        </Select>
-      </Field>
-
-      <Field label="Latency Target">
-        <Select
-          value={m.latencyTarget}
-          onValueChange={(v) =>
-            m.update({ latencyTarget: v as "realtime" | "interactive" | "batch" })
-          }
-        >
-          <SelectTrigger className="bg-background/40">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="realtime">Realtime (&lt;1s)</SelectItem>
-            <SelectItem value="interactive">Interactive (&lt;5s)</SelectItem>
-            <SelectItem value="batch">Batch (offline)</SelectItem>
-          </SelectContent>
-        </Select>
-      </Field>
-
-      <SubSection title="Optimization">
-        <ToggleRow
-          label="Prompt Caching"
-          checked={m.cacheEnabled}
-          onChange={(c) => m.update({ cacheEnabled: c })}
-        />
-        <ToggleRow
-          label="Batch Inference"
-          checked={m.batchEnabled}
-          onChange={(c) => m.update({ batchEnabled: c })}
-        />
-        <ToggleRow
-          label="Stream Responses"
-          checked={m.streamResponses}
-          onChange={(c) => m.update({ streamResponses: c })}
-        />
-      </SubSection>
-
-      <SubSection title="Budget Guardrails">
+      <SubSection title="Token Profile">
         <SliderField
-          label="Cost Ceiling /1k tok"
-          value={m.costCeilingPer1k}
-          onChange={(v) => m.update({ costCeilingPer1k: v })}
-          min={0.001}
-          max={0.5}
-          step={0.001}
-          decimals={3}
-          unit="$"
+          label="Avg Input Tokens"
+          value={m.avg_input_tokens}
+          onChange={(v) => m.update({ avg_input_tokens: v })}
+          min={0}
+          max={200000}
+          step={500}
         />
-        <Field label="Fallback Behavior">
-          <Select
-            value={m.fallback}
-            onValueChange={(v) =>
-              m.update({
-                fallback: v as "fail-fast" | "next-tier" | "cheapest-available",
-              })
-            }
-          >
-            <SelectTrigger className="bg-background/40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="fail-fast">Fail fast</SelectItem>
-              <SelectItem value="next-tier">Use next tier</SelectItem>
-              <SelectItem value="cheapest-available">Cheapest available</SelectItem>
-            </SelectContent>
-          </Select>
-        </Field>
+        <SliderField
+          label="Avg Output Tokens"
+          value={m.avg_output_tokens}
+          onChange={(v) => m.update({ avg_output_tokens: v })}
+          min={0}
+          max={32000}
+          step={100}
+        />
+        <SliderField
+          label="Avg Reasoning Tokens"
+          value={m.avg_reasoning_tokens}
+          onChange={(v) => m.update({ avg_reasoning_tokens: v })}
+          min={0}
+          max={32000}
+          step={100}
+        />
+        <SliderField
+          label="Avg Cached Tokens"
+          value={m.avg_cached_tokens}
+          onChange={(v) => m.update({ avg_cached_tokens: v })}
+          min={0}
+          max={200000}
+          step={500}
+        />
+        <ToggleRow
+          label="Cache Eligible"
+          checked={m.cache_eligible}
+          onChange={(c) => m.update({ cache_eligible: c })}
+        />
       </SubSection>
     </div>
   );
