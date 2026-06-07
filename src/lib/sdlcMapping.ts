@@ -77,6 +77,9 @@ function buildPick(
       modelName: "—",
       inputTokens: 0,
       outputTokens: 0,
+      cachedTokens: 0,
+      totalRequests: 0,
+      durationMonths,
       cost: 0,
       confidence: 0,
     };
@@ -85,10 +88,11 @@ function buildPick(
   const stageWorkload: WorkloadProfile = {
     ...workload,
     requests_per_user_per_day: workload.requests_per_user_per_day / stagesCount,
+    avg_cached_tokens: workload.cache_eligible ? workload.avg_cached_tokens : 0,
   };
-  const cost = pricing
-    ? calculateCost({ workload: stageWorkload, durationMonths, pricing }).total_project_cost
-    : 0;
+  const breakdown = pricing
+    ? calculateCost({ workload: stageWorkload, durationMonths, pricing })
+    : null;
   const requests =
     stageWorkload.active_users * stageWorkload.requests_per_user_per_day * 30 * durationMonths;
   return {
@@ -99,7 +103,10 @@ function buildPick(
     contextWindow: catalog?.context_window,
     inputTokens: requests * (workload.avg_input_tokens ?? 0),
     outputTokens: requests * (workload.avg_output_tokens ?? 0),
-    cost,
+    cachedTokens: requests * (stageWorkload.avg_cached_tokens ?? 0),
+    totalRequests: requests,
+    durationMonths,
+    cost: breakdown?.total_project_cost ?? 0,
     confidence: baseConfidence,
   };
 }
