@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { RecommendationOutput, WorkloadProfile } from "../lib/types";
+import { useModelConfigStore } from "@/stores/modelConfig";
 
 export interface WorkloadDraft extends WorkloadProfile {
   project_duration_months: number;
@@ -41,8 +42,21 @@ export const useRecommendationStore = create<RecommendationState>((set) => ({
   recommendation: null,
   draft: null,
   selectedCategory: "recommended",
-  setRecommendation: (r) =>
-    set({ recommendation: r, draft: draftFromRecommendation(r), selectedCategory: "recommended" }),
+  setRecommendation: (r) => {
+    const draft = draftFromRecommendation(r);
+    // Auto-populate Model Configuration controllers from recommendation
+    useModelConfigStore.getState().hydrate({
+      project_duration_months: draft.project_duration_months,
+      active_users: draft.active_users,
+      requests_per_user_per_day: draft.requests_per_user_per_day,
+      avg_input_tokens: draft.avg_input_tokens,
+      avg_output_tokens: draft.avg_output_tokens,
+      avg_reasoning_tokens: draft.avg_reasoning_tokens,
+      avg_cached_tokens: draft.avg_cached_tokens,
+      cache_eligible: draft.cache_eligible,
+    });
+    set({ recommendation: r, draft, selectedCategory: "recommended" });
+  },
   updateDraft: (patch) =>
     set((s) => (s.draft ? { draft: { ...s.draft, ...patch } } : s)),
   setSelectedCategory: (selectedCategory) => set({ selectedCategory }),
