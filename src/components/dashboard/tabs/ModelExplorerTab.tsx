@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useModelsStore } from "@/stores/models";
+import { useModelConfigStore, type ModelConfig } from "@/stores/modelConfig";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -28,27 +29,96 @@ import {
   Loader2,
   AlertCircle,
   ArrowUpDown,
+  ChevronRight,
+  ChevronDown,
 } from "lucide-react";
 import type { Model } from "@/lib/types";
 
+// ─────────────────────────────────────────────
+// Formatting helpers
+// ─────────────────────────────────────────────
 function fmtCtx(n?: number) {
   if (!n) return "—";
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1000) return `${(n / 1000).toFixed(0)}K`;
   return String(n);
 }
-
-function fmtPrice(n?: number) {
+function fmtPricePerM(n?: number) {
   if (n == null) return "—";
   return `$${n.toFixed(2)}`;
 }
+function fmtTokens(t: number) {
+  if (t >= 1e12) return (t / 1e12).toFixed(1) + "T";
+  if (t >= 1e9) return (t / 1e9).toFixed(1) + "B";
+  if (t >= 1e6) return (t / 1e6).toFixed(1) + "M";
+  if (t >= 1e3) return (t / 1e3).toFixed(1) + "K";
+  return t.toFixed(0);
+}
+function fmtCurrencyShort(a: number) {
+  if (a >= 1e9) return "$" + (a / 1e9).toFixed(2) + "B";
+  if (a >= 1e6) return "$" + (a / 1e6).toFixed(2) + "M";
+  if (a >= 1e3) return "$" + (a / 1e3).toFixed(1) + "K";
+  if (a >= 1) return "$" + a.toFixed(2);
+  return "$" + a.toFixed(4);
+}
+function fmtCurrency(a: number) {
+  return "$" + a.toLocaleString(undefined, { maximumFractionDigits: 2 });
+}
 
-type SortKey = "name" | "provider" | "context" | "input" | "output" | "cached";
+// ─────────────────────────────────────────────
+// Cost calc (pricing in $/1M tokens already)
+// ─────────────────────────────────────────────
+interface CostBreakdown {
+  total_requests: number;
+  input_tokens: number;
+  output_tokens: number;
+  reasoning_tokens: number;
+  cached_tokens: number;
+  input_cost: number;
+  output_cost: number;
+  cached_cost: number;
+  total_cost: number;
+  cache_enabled: boolean;
+}
+
+function calcCost(m: Model, w: ModelConfig): CostBreakdown {
+  const promptPerToken = (m.pricing?.prompt ?? 0) / 1_000_000;
+  const outPerToken = (m.pricing?.completion ?? 0) / 1_000_000;
+  const cachePerToken = (m.pricing?.input_cache_read ?? 0) / 1_000_000;
+
+  const total_requests = w.project_duration_months * 30 * w.active_users * w.requests_per_user_per_day;
+  const input_tokens = total_requests * w.avg_input_tokens;
+  const output_tokens = total_requests * w.avg_output_tokens;
+  const reasoning_tokens = total_requests * (w.avg_reasoning_tokens || 0);
+  const cache_enabled = w.cache_eligible && (w.avg_cached_tokens || 0) > 0 && cachePerToken > 0;
+  const cached_tokens = cache_enabled ? total_requests * w.avg_cached_tokens : 0;
+
+  const input_cost = input_tokens * promptPerToken;
+  const output_cost = (output_tokens + reasoning_tokens) * outPerToken;
+  const cached_cost = cached_tokens * cachePerToken;
+  const total_cost = input_cost + output_cost + cached_cost;
+
+  return {
+    total_requests,
+    input_tokens,
+    output_tokens,
+    reasoning_tokens,
+    cached_tokens,
+    input_cost,
+    output_cost,
+    cached_cost,
+    total_cost,
+    cache_enabled,
+  };
+}
+
+type SortKey = "name" | "provider" | "context" | "input" | "output" | "cost";
 type SortDir = "asc" | "desc";
 
 export function ModelExplorerTab() {
   const setModels = useModelsStore((s) => s.setModels);
   const cached = useModelsStore((s) => s.models);
+  const workload = useModelConfigStore();
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["models"],
@@ -71,11 +141,17 @@ export function ModelExplorerTab() {
   const [query, setQuery] = useState("");
   const [provider, setProvider] = useState<string>("all");
   const [capability, setCapability] = useState<string>("all");
-  const [sortKey, setSortKey] = useState<SortKey>("name");
+  const [sortKey, setSortKey] = useState<SortKey>("cost");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const enriched = useMemo(
+    () => models.map((m) => ({ model: m, cost: calcCost(m, workload) })),
+    [models, workload],
+  );
 
   const filtered = useMemo(() => {
-    const list = models.filter((m) => {
+    const list = enriched.filter(({ model: m }) => {
       if (provider !== "all" && m.provider !== provider) return false;
       if (
         query &&
@@ -89,7 +165,7 @@ export function ModelExplorerTab() {
     });
 
     const dir = sortDir === "asc" ? 1 : -1;
-    const get = (m: Model): string | number => {
+    const get = ({ model: m, cost }: typeof list[number]): string | number => {
       switch (sortKey) {
         case "name":
           return (m.name || m.id).toLowerCase();
@@ -101,8 +177,8 @@ export function ModelExplorerTab() {
           return m.pricing?.prompt ?? 0;
         case "output":
           return m.pricing?.completion ?? 0;
-        case "cached":
-          return m.pricing?.input_cache_read ?? 0;
+        case "cost":
+          return cost.total_cost;
       }
     };
     return [...list].sort((a, b) => {
@@ -112,7 +188,7 @@ export function ModelExplorerTab() {
       if (av > bv) return 1 * dir;
       return 0;
     });
-  }, [models, provider, query, capability, sortKey, sortDir]);
+  }, [enriched, provider, query, capability, sortKey, sortDir]);
 
   const toggleSort = (k: SortKey) => {
     if (sortKey === k) setSortDir(sortDir === "asc" ? "desc" : "asc");
@@ -187,64 +263,85 @@ export function ModelExplorerTab() {
         </div>
       </GlassCard>
 
+      <GlassCard className="px-4 py-2 text-[11px] text-muted-foreground">
+        Projected costs use the workload from <span className="text-foreground">Model Configuration</span>:
+        {" "}{workload.project_duration_months}mo · {workload.active_users.toLocaleString()} users · {workload.requests_per_user_per_day} req/day · in {workload.avg_input_tokens}/out {workload.avg_output_tokens}/reason {workload.avg_reasoning_tokens}/cache {workload.avg_cached_tokens} tokens · cache {workload.cache_eligible ? "ON" : "OFF"}
+      </GlassCard>
+
       <GlassCard className="p-0 overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow className="border-white/[0.06] hover:bg-transparent">
+              <TableHead className="w-8" />
               <SortableHead label="Model" active={sortKey === "name"} dir={sortDir} onClick={() => toggleSort("name")} />
               <SortableHead label="Provider" active={sortKey === "provider"} dir={sortDir} onClick={() => toggleSort("provider")} />
               <TableHead className="text-[10px] uppercase tracking-wider">Capabilities</TableHead>
               <SortableHead label="Context" active={sortKey === "context"} dir={sortDir} onClick={() => toggleSort("context")} className="text-right" />
-              <SortableHead label="Input /1M" active={sortKey === "input"} dir={sortDir} onClick={() => toggleSort("input")} className="text-right" />
-              <SortableHead label="Output /1M" active={sortKey === "output"} dir={sortDir} onClick={() => toggleSort("output")} className="text-right" />
-              <SortableHead label="Cached /1M" active={sortKey === "cached"} dir={sortDir} onClick={() => toggleSort("cached")} className="text-right" />
+              <SortableHead label="In /1M" active={sortKey === "input"} dir={sortDir} onClick={() => toggleSort("input")} className="text-right" />
+              <SortableHead label="Out /1M" active={sortKey === "output"} dir={sortDir} onClick={() => toggleSort("output")} className="text-right" />
+              <SortableHead label="Projected Cost" active={sortKey === "cost"} dir={sortDir} onClick={() => toggleSort("cost")} className="text-right" />
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.map((m) => (
-              <TableRow key={m.id} className="border-white/[0.04] hover:bg-white/[0.03]">
-                <TableCell className="max-w-[320px]">
-                  <div className="truncate text-sm font-medium">{m.name || m.id}</div>
-                  <div className="truncate text-[11px] text-muted-foreground">{m.id}</div>
-                  {m.description && (
-                    <div className="mt-0.5 line-clamp-1 text-[11px] text-muted-foreground/80">
-                      {m.description}
-                    </div>
+            {filtered.map(({ model: m, cost }) => {
+              const isOpen = expandedId === m.id;
+              return (
+                <Fragment key={m.id}>
+                  <TableRow
+                    className="border-white/[0.04] hover:bg-white/[0.03] cursor-pointer"
+                    onClick={() => setExpandedId(isOpen ? null : m.id)}
+                  >
+                    <TableCell className="w-8 text-muted-foreground">
+                      {isOpen ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+                    </TableCell>
+                    <TableCell className="max-w-[300px]">
+                      <div className="truncate text-sm font-medium">{m.name || m.id}</div>
+                      <div className="truncate text-[11px] text-muted-foreground">{m.id}</div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="border-white/10 text-xs text-muted-foreground">
+                        {m.provider || "—"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {m.supports_vision && (
+                          <Badge variant="outline" className="gap-1 border-cyan-400/30 text-cyan-200 text-[10px]">
+                            <Eye className="h-3 w-3" /> Vision
+                          </Badge>
+                        )}
+                        {m.supports_tool_calling && (
+                          <Badge variant="outline" className="gap-1 border-emerald-400/30 text-emerald-200 text-[10px]">
+                            <Wrench className="h-3 w-3" /> Tools
+                          </Badge>
+                        )}
+                        {m.supports_reasoning && (
+                          <Badge variant="outline" className="gap-1 border-purple-400/30 text-purple-200 text-[10px]">
+                            <Brain className="h-3 w-3" /> Reasoning
+                          </Badge>
+                        )}
+                        {!m.supports_vision && !m.supports_tool_calling && !m.supports_reasoning && (
+                          <span className="text-[11px] text-muted-foreground">—</span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums text-xs">{fmtCtx(m.context_window)}</TableCell>
+                    <TableCell className="text-right tabular-nums text-xs">{fmtPricePerM(m.pricing?.prompt)}</TableCell>
+                    <TableCell className="text-right tabular-nums text-xs">{fmtPricePerM(m.pricing?.completion)}</TableCell>
+                    <TableCell className="text-right tabular-nums text-sm font-semibold">
+                      {fmtCurrencyShort(cost.total_cost)}
+                    </TableCell>
+                  </TableRow>
+                  {isOpen && (
+                    <TableRow className="border-white/[0.04] bg-white/[0.02] hover:bg-white/[0.02]">
+                      <TableCell colSpan={8} className="p-0">
+                        <ExpandedDetail model={m} cost={cost} workload={workload} />
+                      </TableCell>
+                    </TableRow>
                   )}
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline" className="border-white/10 text-xs text-muted-foreground">
-                    {m.provider || "—"}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <div className="flex flex-wrap gap-1">
-                    {m.supports_vision && (
-                      <Badge variant="outline" className="gap-1 border-cyan-400/30 text-cyan-200 text-[10px]">
-                        <Eye className="h-3 w-3" /> Vision
-                      </Badge>
-                    )}
-                    {m.supports_tool_calling && (
-                      <Badge variant="outline" className="gap-1 border-emerald-400/30 text-emerald-200 text-[10px]">
-                        <Wrench className="h-3 w-3" /> Tools
-                      </Badge>
-                    )}
-                    {m.supports_reasoning && (
-                      <Badge variant="outline" className="gap-1 border-purple-400/30 text-purple-200 text-[10px]">
-                        <Brain className="h-3 w-3" /> Reasoning
-                      </Badge>
-                    )}
-                    {!m.supports_vision && !m.supports_tool_calling && !m.supports_reasoning && (
-                      <span className="text-[11px] text-muted-foreground">—</span>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell className="text-right tabular-nums text-xs">{fmtCtx(m.context_window)}</TableCell>
-                <TableCell className="text-right tabular-nums text-xs">{fmtPrice(m.pricing?.prompt)}</TableCell>
-                <TableCell className="text-right tabular-nums text-xs">{fmtPrice(m.pricing?.completion)}</TableCell>
-                <TableCell className="text-right tabular-nums text-xs">{fmtPrice(m.pricing?.input_cache_read)}</TableCell>
-              </TableRow>
-            ))}
+                </Fragment>
+              );
+            })}
           </TableBody>
         </Table>
 
@@ -254,6 +351,86 @@ export function ModelExplorerTab() {
           </div>
         )}
       </GlassCard>
+    </div>
+  );
+}
+
+function ExpandedDetail({
+  model,
+  cost,
+  workload,
+}: {
+  model: Model;
+  cost: CostBreakdown;
+  workload: ModelConfig;
+}) {
+  return (
+    <div className="grid grid-cols-1 gap-4 p-5 md:grid-cols-3">
+      <DetailSection title="Model Information">
+        <DetailRow label="Model ID" value={<span className="font-mono text-[11px]">{model.id}</span>} />
+        <DetailRow label="Modality" value={(model.capabilities ?? []).join(", ") || "text"} />
+        <DetailRow label="Context" value={fmtCtx(model.context_window)} />
+        {model.description && (
+          <div className="mt-2 text-[11px] leading-relaxed text-muted-foreground line-clamp-4">
+            {model.description}
+          </div>
+        )}
+      </DetailSection>
+
+      <DetailSection title="Cost Breakdown">
+        <DetailRow label="Input tokens" value={fmtTokens(cost.input_tokens)} sub={fmtCurrency(cost.input_cost)} />
+        <DetailRow label="Output tokens" value={fmtTokens(cost.output_tokens)} sub={fmtCurrency(cost.output_cost)} />
+        {cost.reasoning_tokens > 0 && (
+          <DetailRow label="Reasoning tokens" value={fmtTokens(cost.reasoning_tokens)} />
+        )}
+        <DetailRow
+          label="Cached tokens"
+          value={cost.cache_enabled ? fmtTokens(cost.cached_tokens) : "—"}
+          sub={cost.cache_enabled ? fmtCurrency(cost.cached_cost) : undefined}
+        />
+        <div className="mt-2 flex items-center justify-between border-t border-white/[0.06] pt-2">
+          <span className="text-[11px] uppercase tracking-wider text-muted-foreground">Project total</span>
+          <span className="text-base font-semibold tabular-nums">{fmtCurrencyShort(cost.total_cost)}</span>
+        </div>
+      </DetailSection>
+
+      <DetailSection title="Project Metrics">
+        <DetailRow label="Duration" value={`${workload.project_duration_months} months`} />
+        <DetailRow label="Active users" value={workload.active_users.toLocaleString()} />
+        <DetailRow label="Requests/user/day" value={String(workload.requests_per_user_per_day)} />
+        <DetailRow label="Total requests" value={fmtTokens(cost.total_requests)} />
+        <DetailRow label="Avg in / out" value={`${workload.avg_input_tokens} / ${workload.avg_output_tokens}`} />
+        <DetailRow label="Cache eligible" value={workload.cache_eligible ? "Yes" : "No"} />
+      </DetailSection>
+    </div>
+  );
+}
+
+function DetailSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-lg border border-white/[0.06] bg-background/30 p-3">
+      <div className="mb-2 text-[10px] uppercase tracking-wider text-muted-foreground">{title}</div>
+      <div className="space-y-1.5">{children}</div>
+    </div>
+  );
+}
+
+function DetailRow({
+  label,
+  value,
+  sub,
+}: {
+  label: string;
+  value: React.ReactNode;
+  sub?: string;
+}) {
+  return (
+    <div className="flex items-baseline justify-between gap-2 text-xs">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="text-right tabular-nums">
+        {value}
+        {sub && <span className="ml-2 text-[10px] text-muted-foreground">{sub}</span>}
+      </span>
     </div>
   );
 }
