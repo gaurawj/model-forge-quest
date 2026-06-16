@@ -2,6 +2,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { useProjectConfigStore } from "@/stores/projectConfig";
 import { useRecommendationStore } from "@/stores/recommendation";
 import { ShieldAlert } from "lucide-react";
+import { confidenceScalar } from "@/lib/types";
 
 interface Risk {
   label: string;
