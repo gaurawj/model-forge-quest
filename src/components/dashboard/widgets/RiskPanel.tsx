@@ -2,6 +2,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { useProjectConfigStore } from "@/stores/projectConfig";
 import { useRecommendationStore } from "@/stores/recommendation";
 import { ShieldAlert } from "lucide-react";
+import { confidenceScalar } from "@/lib/types";
 
 interface Risk {
   label: string;
@@ -48,7 +49,7 @@ export function RiskPanel() {
     },
     {
       label: "Scalability Risk",
-      level: Math.min(95, 25 + cfg.codebaseSize * 6 + (rec?.confidence ? (1 - rec.confidence) * 30 : 10)),
+      level: Math.min(95, 25 + cfg.codebaseSize * 6 + (rec ? (1 - confidenceScalar(rec.confidence)) * 30 : 10)),
       note: "Driven by codebase size and recommendation confidence.",
     },
   ];

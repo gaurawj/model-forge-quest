@@ -37,7 +37,7 @@ export function RecommendationSummary() {
               </div>
               <div className="mt-2 truncate text-sm font-medium">{name}</div>
               <p className="mt-1.5 text-xs text-muted-foreground">
-                {r?.reason ?? RATIONALE[t]}
+                {r?.why ?? r?.reason ?? RATIONALE[t]}
               </p>
             </div>
           );

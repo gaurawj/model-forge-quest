@@ -26,27 +26,6 @@ const TIER_META: Record<
   },
 };
 
-function topModel(
-  rows: ReturnType<typeof useSdlcRows>,
-  tier: RecommendationCategory,
-): string {
-  const counts = new Map<string, number>();
-  for (const r of rows) {
-    const n = r.picks[tier].modelName;
-    if (!n || n === "—") continue;
-    counts.set(n, (counts.get(n) ?? 0) + 1);
-  }
-  let best = "";
-  let max = 0;
-  for (const [k, v] of counts) {
-    if (v > max) {
-      max = v;
-      best = k;
-    }
-  }
-  return best || "—";
-}
-
 export function SdlcPlanTab() {
   const rows = useSdlcRows();
 
@@ -71,17 +50,14 @@ export function SdlcPlanTab() {
             const meta = TIER_META[t];
             const Icon = meta.icon;
             return (
-              <div key={t} className="flex flex-col items-center gap-2">
-                <div className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
-                  <Icon className="h-3 w-3" /> {meta.label}
-                </div>
+              <div key={t} className="flex justify-center">
                 <span
                   className={cn(
                     "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-wide",
                     meta.pill,
                   )}
                 >
-                  {topModel(rows, t)}
+                  <Icon className="h-3 w-3" /> {meta.label}
                 </span>
               </div>
             );

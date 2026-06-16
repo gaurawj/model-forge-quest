@@ -48,8 +48,8 @@ export function FinancialTab() {
     return TIERS.map((tier) => {
       const r = rec.single_model_recommendations.find((x) => x.category === tier);
       const pricing =
-        rec.pricing_information.find((p) => p.model_id === r?.model_id)?.pricing ??
-        models.find((m) => m.id === r?.model_id)?.pricing;
+        rec.pricing_information?.find((p) => p.model_id === r?.model_id)?.pricing ??
+        models.find((m) => m.id === r?.model_id || m.id.endsWith(`/${r?.model_id ?? ""}`))?.pricing;
       const monthly = pricing
         ? calculateCost({ workload: draft, durationMonths: 1, pricing }).total_project_cost
         : 0;

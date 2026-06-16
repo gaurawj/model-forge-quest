@@ -3,12 +3,14 @@ import { useModelsStore } from "@/stores/models";
 import { useModelConfigStore } from "@/stores/modelConfig";
 import { calculateCost } from "@/lib/cost";
 import { SDLC_STAGES, type SdlcStage } from "@/lib/sdlcStages";
-import type {
-  ArchitectureRole,
-  Model,
-  ModelPricing,
-  RecommendationCategory,
-  WorkloadProfile,
+import {
+  confidenceScalar,
+  type Model,
+  type ModelPricing,
+  type PricingInformation,
+  type RecommendationCategory,
+  type StageRecommendation,
+  type WorkloadProfile,
 } from "@/lib/types";
 import { useMemo } from "react";
 
@@ -25,53 +27,38 @@ export interface StagePick {
   durationMonths: number;
   cost: number;
   confidence: number;
+  why?: string;
 }
 
 export interface StageRow {
   stage: SdlcStage;
-  matchedRole?: ArchitectureRole;
+  stageRec?: StageRecommendation;
   picks: Record<RecommendationCategory, StagePick>;
 }
 
-function pickRoleForStage(
-  stage: SdlcStage,
-  roles: ArchitectureRole[],
-  usedIndices: Set<number>,
-): { role?: ArchitectureRole; index: number } {
-  // Best fuzzy match by keyword inclusion
-  let best = -1;
-  let bestScore = 0;
-  roles.forEach((r, i) => {
-    if (usedIndices.has(i)) return;
-    const name = (r.role ?? "").toLowerCase();
-    const score = stage.roleKeywords.reduce(
-      (acc, k) => acc + (name.includes(k) ? 1 : 0),
-      0,
-    );
-    if (score > bestScore) {
-      bestScore = score;
-      best = i;
-    }
-  });
-  if (best >= 0) {
-    usedIndices.add(best);
-    return { role: roles[best], index: best };
-  }
-  return { role: undefined, index: -1 };
+/** Match an API model_id (e.g. "gemini-35-flash") against catalog Model.id ("provider/x"). */
+function findModel(models: Model[], modelId?: string): Model | undefined {
+  if (!modelId) return undefined;
+  return (
+    models.find((m) => m.id === modelId) ??
+    models.find((m) => m.id.endsWith(`/${modelId}`)) ??
+    models.find((m) => m.id.split("/").pop() === modelId)
+  );
 }
 
 function buildPick(
   modelId: string | undefined,
   models: Model[],
-  pricingInfo: { model_id: string; pricing: ModelPricing }[],
+  pricingInfo: PricingInformation[] | undefined,
   workload: WorkloadProfile,
   durationMonths: number,
   stagesCount: number,
   baseConfidence: number,
+  why?: string,
 ): StagePick {
-  const catalog = models.find((m) => m.id === modelId);
+  const catalog = findModel(models, modelId);
   const pricing =
-    pricingInfo.find((p) => p.model_id === modelId)?.pricing ?? catalog?.pricing;
+    pricingInfo?.find((p) => p.model_id === modelId)?.pricing ?? catalog?.pricing;
   if (!modelId) {
     return {
       modelName: "—",
@@ -84,7 +71,6 @@ function buildPick(
       confidence: 0,
     };
   }
-  // Distribute the workload evenly across SDLC stages for per-stage cost
   const stageWorkload: WorkloadProfile = {
     ...workload,
     requests_per_user_per_day: workload.requests_per_user_per_day / stagesCount,
@@ -108,7 +94,17 @@ function buildPick(
     durationMonths,
     cost: breakdown?.total_project_cost ?? 0,
     confidence: baseConfidence,
+    why,
   };
+}
+
+function findStageRec(
+  stage: SdlcStage,
+  list: StageRecommendation[] | undefined,
+): StageRecommendation | undefined {
+  if (!list) return undefined;
+  const target = stage.name.toLowerCase();
+  return list.find((s) => (s.stage_name ?? "").toLowerCase() === target);
 }
 
 export function useSdlcRows(): StageRow[] {
@@ -120,7 +116,6 @@ export function useSdlcRows(): StageRow[] {
   return useMemo(() => {
     if (!rec || !draft) return [];
 
-    // Live workload sourced from Model Configuration sidebar controllers.
     const workload: WorkloadProfile = {
       ...draft,
       active_users: mc.active_users,
@@ -133,9 +128,8 @@ export function useSdlcRows(): StageRow[] {
       project_duration_months: mc.project_duration_months,
     };
     const duration = mc.project_duration_months || 1;
+    const baseConfidence = confidenceScalar(rec.confidence);
 
-    const roles = rec.architecture?.roles ?? [];
-    const used = new Set<number>();
     const fallback = (cat: RecommendationCategory) =>
       rec.single_model_recommendations.find((r) => r.category === cat)?.model_id;
     const fallbacks: Record<RecommendationCategory, string | undefined> = {
@@ -145,37 +139,41 @@ export function useSdlcRows(): StageRow[] {
     };
 
     return SDLC_STAGES.map((stage) => {
-      const { role } = pickRoleForStage(stage, roles, used);
+      const stageRec = findStageRec(stage, rec.stage_recommendations);
+      const m = stageRec?.models;
       const picks: Record<RecommendationCategory, StagePick> = {
         recommended: buildPick(
-          role?.recommended_model_id ?? fallbacks.recommended,
+          m?.recommended_model_id ?? fallbacks.recommended,
           models,
           rec.pricing_information,
           workload,
           duration,
           SDLC_STAGES.length,
-          rec.confidence ?? 0.85,
+          baseConfidence,
+          m?.recommended_why,
         ),
         budget: buildPick(
-          role?.budget_model_id ?? fallbacks.budget,
+          m?.budget_model_id ?? fallbacks.budget,
           models,
           rec.pricing_information,
           workload,
           duration,
           SDLC_STAGES.length,
-          (rec.confidence ?? 0.85) * 0.9,
+          baseConfidence * 0.9,
+          m?.budget_why,
         ),
         premium: buildPick(
-          role?.premium_model_id ?? fallbacks.premium,
+          m?.premium_model_id ?? fallbacks.premium,
           models,
           rec.pricing_information,
           workload,
           duration,
           SDLC_STAGES.length,
-          Math.min(1, (rec.confidence ?? 0.85) * 1.05),
+          Math.min(1, baseConfidence * 1.05),
+          m?.premium_why,
         ),
       };
-      return { stage, matchedRole: role, picks };
+      return { stage, stageRec, picks };
     });
   }, [rec, draft, models, mc]);
 }

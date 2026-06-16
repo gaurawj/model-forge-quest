@@ -77,10 +77,10 @@ export interface ArchitectureRole {
 export interface Architecture {
   pattern?: string;
   hosting_strategy?: string;
-  framework?: string;
+  agent_framework_recommendation?: string;
   framework_constraints?: string[];
   roles?: ArchitectureRole[];
-  notes?: string;
+  notes?: string[];
 }
 
 export type RecommendationCategory = "recommended" | "budget" | "premium";
@@ -88,7 +88,27 @@ export type RecommendationCategory = "recommended" | "budget" | "premium";
 export interface SingleModelRecommendation {
   category: RecommendationCategory;
   model_id: string;
+  why?: string;
+  tradeoffs?: string;
+  /** Legacy alias for `why`. */
   reason?: string;
+}
+
+export interface StageRecommendationModels {
+  recommended_model_id?: string;
+  budget_model_id?: string;
+  premium_model_id?: string;
+  recommended_why?: string;
+  budget_why?: string;
+  premium_why?: string;
+  key_capability?: string;
+  tradeoffs?: string;
+}
+
+export interface StageRecommendation {
+  stage_name: string;
+  models: StageRecommendationModels;
+  rationale?: string;
 }
 
 export interface PricingInformation {
@@ -101,21 +121,50 @@ export type OptimisationImpact = "high" | "medium" | "low" | string;
 export interface OptimisationTip {
   impact: OptimisationImpact;
   title: string;
-  description: string;
+  /** New schema field. */
+  detail?: string;
+  /** Legacy alias. */
+  description?: string;
 }
 
 export interface QuestionnaireSummary {
   project_name?: string;
   project_duration_months?: number;
+  app_type?: string;
+  agentic_level?: string;
+  scale?: string;
+  priority?: string;
+  budget_range?: string;
   [k: string]: unknown;
 }
 
+export interface ConfidenceInfo {
+  score: "high" | "medium" | "low" | string;
+  reason?: string;
+  assumptions?: string[];
+}
+
 export interface RecommendationOutput {
+  schema_version?: string;
+  generated_at?: string;
+  input_hash?: string;
   questionnaire_summary: QuestionnaireSummary;
   workload_profile: WorkloadProfile;
   architecture: Architecture;
   single_model_recommendations: SingleModelRecommendation[];
-  pricing_information: PricingInformation[];
+  stage_recommendations?: StageRecommendation[];
+  pricing_information?: PricingInformation[];
   optimisation_tips: OptimisationTip[];
-  confidence: number;
+  confidence: ConfidenceInfo | number;
+}
+
+/** Map confidence (object or legacy number) to a 0–1 scalar. */
+export function confidenceScalar(c: RecommendationOutput["confidence"] | undefined): number {
+  if (c == null) return 0.8;
+  if (typeof c === "number") return c;
+  const s = String(c.score ?? "").toLowerCase();
+  if (s === "high") return 0.9;
+  if (s === "medium") return 0.7;
+  if (s === "low") return 0.5;
+  return 0.8;
 }
