@@ -12,6 +12,12 @@ const TIER_TEXT: Record<RecommendationCategory, string> = {
   premium: "text-purple-300",
 };
 
+const TIER_PILL: Record<RecommendationCategory, string> = {
+  recommended: "border-cyan-400/40 bg-cyan-400/10 text-cyan-200",
+  budget: "border-emerald-400/40 bg-emerald-400/10 text-emerald-200",
+  premium: "border-purple-400/40 bg-purple-400/10 text-purple-200",
+};
+
 export function SdlcStageAccordion({
   row,
   defaultOpen = false,
@@ -29,9 +35,23 @@ export function SdlcStageAccordion({
         className="grid w-full grid-cols-[1.2fr_1fr_1fr_1fr_auto] items-center gap-4 px-5 py-4 text-left transition-colors hover:bg-white/[0.02]"
       >
         <div className="text-sm font-semibold">{row.stage.name}</div>
-        <span />
-        <span />
-        <span />
+        {tiers.map((t) => {
+          const pick = row.picks[t];
+          const label = pick.modelId ? (pick.modelName ?? pick.modelId) : "—";
+          return (
+            <div key={t} className="flex justify-center">
+              <span
+                className={cn(
+                  "inline-flex max-w-full items-center gap-1.5 truncate rounded-full border px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wide",
+                  TIER_PILL[t],
+                )}
+                title={pick.modelId}
+              >
+                {label}
+              </span>
+            </div>
+          );
+        })}
         <ChevronDown
           className={cn(
             "h-4 w-4 text-muted-foreground transition-transform",
