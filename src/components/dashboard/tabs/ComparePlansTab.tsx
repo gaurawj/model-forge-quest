@@ -92,18 +92,20 @@ export function ComparePlansTab() {
     if (!rec || !draft) return [];
     return TIERS.map((tier) => {
       const r = rec.single_model_recommendations.find((x) => x.category === tier);
+      const mid = r?.model_id ?? "";
+      const catalogModel = models.find((m) => m.id === mid || m.id.endsWith(`/${mid}`));
       const pricing =
-        rec.pricing_information.find((p) => p.model_id === r?.model_id)?.pricing ??
-        models.find((m) => m.id === r?.model_id)?.pricing;
+        rec.pricing_information?.find((p) => p.model_id === mid)?.pricing ??
+        catalogModel?.pricing;
       const monthly = pricing
         ? calculateCost({ workload: draft, durationMonths: 1, pricing }).total_project_cost
         : 0;
       return {
         tier,
-        modelName: models.find((m) => m.id === r?.model_id)?.name ?? r?.model_id ?? "—",
-        provider: models.find((m) => m.id === r?.model_id)?.provider ?? "—",
+        modelName: catalogModel?.name ?? mid ?? "—",
+        provider: catalogModel?.provider ?? "—",
         monthly,
-        reason: r?.reason,
+        reason: r?.why ?? r?.reason,
       };
     });
   }, [rec, draft, models]);
