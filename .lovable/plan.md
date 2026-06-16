@@ -1,430 +1,51 @@
-# Dashboard Layout Refactor Plan (Updated)
-
-## Objective
-
-Simplify the SDLC dashboard experience by:
-
-- Removing the AI Recommendation Score widget.
-- Keeping only Recommendation Summary and Risk Assessment at the top.
-- Moving Project Configuration into a permanent right-side sidebar.
-- Reducing SDLC table clutter by removing repeated model names and tier labels from every stage row.
-- Displaying model selections once in the SDLC header section.
-- Using stage rows purely as navigation/drill-down elements.
-- Preserving detailed model, token, cost, and confidence information inside expanded stage panels.
-
----
-
-# 1. Top Dashboard Widgets
-
-## Remove
-
-Delete:
-
-```text
-src/components/dashboard/widgets/RecommendationGauge.tsx
-
-```
-
-## Dashboard Header Area
-
-Replace current 3-card layout with a 2-card layout.
-
-### Layout
-
-```text
-┌────────────────────────────────────┬────────────────────────────────────┐
-│ Recommendation Summary             │ Risk Assessment                    │
-└────────────────────────────────────┴────────────────────────────────────┘
-
-```
-
-### Recommendation Summary
-
-Display:
-
-- Recommended Strategy
-- Selected AI Toolchain
-- Key recommendation rationale
-- Cost vs capability summary
-
-### Risk Assessment
-
-Display:
-
-- Cost Risk
-- Vendor Lock-in Risk
-- Compliance Risk
-- Scalability Risk
-
----
-
-# 2. Main Dashboard Layout
-
-Move Project Configuration out of the main content flow.
-
-## New Layout
-
-```text
-┌──────────────────────────────────────────┬──────────────────────────┐
-│                                          │                          │
-│ Main Dashboard Content                   │ Project Configuration    │
-│                                          │                          │
-│ Tabs                                     │ Sticky Sidebar           │
-│ SDLC                                     │                          │
-│ Financial                                │                          │
-│ Compare                                  │                          │
-│ Quadrant                                 │                          │
-│                                          │                          │
-└──────────────────────────────────────────┴──────────────────────────┘
-
-```
-
-## Structure
-
-### Left Panel
-
-Contains:
-
-- Recommendation Summary
-- Risk Assessment
-- Tabs
-- Tab Content
-
-### Right Panel
-
-Contains:
-
-- Full Project Configuration
-
-Width:
-
-```text
-340px
-
-```
-
-Behavior:
-
-```text
-sticky top-[64px]
-h-screen
-overflow-y-auto
-shrink-0
-
-```
-
-Always visible.
-
-No collapse functionality.
-
----
-
-# 3. Project Configuration Sidebar
-
-## Create
-
-```text
-src/components/dashboard/ProjectConfigSidebar.tsx
-
-```
-
-## Move Existing Controls
-
-Move all controls from ProjectConfigCard into sidebar.
-
-### Sections
-
-#### Use Case
-
-- Use Case Dropdown
-
-#### Project Characteristics
-
-- Complexity Slider
-- Codebase Size Slider
-- Project Duration Slider
-
-#### Description
-
-- Project Description Textarea
-
-#### Compliance
-
-- SOC2
-- HIPAA
-- On-Premise
-- Zero Data Retention
-
-#### Model Strategy
-
-- Best Per Stage
-- Claude Only
-- GPT Only
-- Gemini Only
-- Self Hosted
-
-#### Actions
-
-Vertical stack:
-
-```text
-Analyze Toolchain
-Save Scenario
-Export Report
-Share
-
-```
-
----
-
-# 4. SDLC Tab Structure
-
-## Simplify Accordion Rows
-
-### Current
-
-Rows contain:
-
-```text
-Stage
-Recommended Label
-Budget Label
-Premium Label
-
-```
-
-### New
-
-Rows contain:
-
-```text
-Stage Only
-
-```
-
-Example:
-
-```text
-▶ Requirements
-▶ Architecture
-▶ Development
-▶ Testing
-▶ Deployment
-
-```
-
-No model names.
-
-No costs.
-
-No tier labels.
-
-No repeated information.
-
----
-
-# 5. SDLC Header Redesign
-
-The model selection is displayed once.
-
-## Header Layout
-
-```text
-┌────────────────────────────────────────────────────┐
-│ Stage      Recommended     Budget      Premium     │
-│            Claude Sonnet   Gemini      Claude Opus │
-└────────────────────────────────────────────────────┘
-
-```
-
-### Purpose
-
-Provide context for:
-
-- Recommended model
-- Budget model
-- Premium model
-
-without repeating the same information on every row.
-
----
-
-# 6. Header Alignment
-
-Update SDLC header grid to match accordion rows.
-
-Use identical layout:
-
-```text
-grid-cols-[1.2fr_1fr_1fr_1fr_auto]
-
-```
-
-Apply:
-
-```text
-px-5
-
-```
-
-Add:
-
-```text
-border-b
-
-```
-
-for alignment and visual consistency.
-
----
-
-# 7. Expanded Stage View
-
-Expanded stage remains the primary detail area.
-
-Example:
-
-```text
-▼ Requirements
-
-```
-
-Displays:
-
-## AI Thinking Workflow
-
-```text
-1. Parse business problem
-2. Identify stakeholders
-3. Extract requirements
-4. Detect conflicts
-5. Generate user stories
-6. Create acceptance criteria
-7. Build specification
-
-```
-
-## Recommended Card
-
-Display:
-
-- Model Name
-- Input Tokens
-- Output Tokens
-- Cost
-- Confidence
-- Benefits
-
-## Budget Card
-
-Display:
-
-- Model Name
-- Input Tokens
-- Output Tokens
-- Cost
-- Confidence
-- Benefits
-
-## Premium Card
-
-Display:
-
-- Model Name
-- Input Tokens
-- Output Tokens
-- Cost
-- Confidence
-- Benefits
-
-### Layout
-
-```text
-┌────────────────┐ ┌────────────────┐ ┌────────────────┐
-│ Recommended    │ │ Budget         │ │ Premium        │
-└────────────────┘ └────────────────┘ └────────────────┘
-
-```
-
----
-
-# 8. SDLC User Experience
-
-### Overview Level
-
-User sees:
-
-```text
-Requirements
-Architecture
-Development
-Code Review
-Testing
-Documentation
-Deployment
-Maintenance
-
-```
-
-### Drill-Down Level
-
-Click stage:
-
-```text
-Requirements
-├─ AI Thinking Workflow
-├─ Recommended Analysis
-├─ Budget Analysis
-└─ Premium Analysis
-
-```
-
-This reduces visual noise while preserving detailed analysis.
-
----
-
-# 9. Files To Modify
-
-## Edit
-
-```text
-src/routes/dashboard.tsx
-src/components/dashboard/sdlc/SdlcStageAccordion.tsx
-src/components/dashboard/tabs/SdlcPlanTab.tsx
-src/components/dashboard/ProjectConfigCard.tsx
-
-```
-
-## Create
-
-```text
-src/components/dashboard/ProjectConfigSidebar.tsx
-
-```
-
-## Delete
-
-```text
-src/components/dashboard/widgets/RecommendationGauge.tsx
-
-```
-
----
-
-# Out of Scope
-
-No changes to:
-
-```text
-Questionnaire screen
-Financial Analysis tab
-Compare Plans tab
-Vendor Quadrant tab
-Backend calculations
-Cost estimation logic
-Analyze Toolchain behavior
-API integrations
-
-```
-
-&nbsp;
+## Goal
+Adapt the app to the new `/api/v1/recommend` schema (v2.0) and update SDLC Plan UI so each stage row shows its tier model IDs (header no longer shows aggregate model pills).
+
+## 1. Type remap (`src/lib/types.ts`)
+Match new API exactly:
+
+- `SingleModelRecommendation`: add `why?: string`, `tradeoffs?: string` (keep `reason` as alias-fallback).
+- New `StageRecommendation` type:
+  ```ts
+  { stage_name: string;
+    models: { recommended_model_id?: string; budget_model_id?: string; premium_model_id?: string;
+              recommended_why?: string; budget_why?: string; premium_why?: string;
+              key_capability?: string; tradeoffs?: string };
+    rationale?: string; }
+  ```
+- `Architecture`: rename `framework` → `agent_framework_recommendation`; `notes` becomes `string[]`; keep `roles` (now usually empty).
+- `OptimisationTip`: rename `description` → `detail` (keep both readable).
+- `Confidence` object: `{ score: 'high'|'medium'|'low'|string; reason?: string; assumptions?: string[] }`. `RecommendationOutput.confidence` becomes this object.
+- `RecommendationOutput`: add `schema_version?`, `generated_at?`, `input_hash?`, `stage_recommendations: StageRecommendation[]`. Make `pricing_information` optional (no longer returned — pricing now sourced from `/api/v1/models`).
+- `WorkloadProfile`: already has the fields; ensure `min_context_window` / `recommended_context_window` / `project_duration_months` stay optional.
+
+## 2. Recommendation store (`src/stores/recommendation.ts`)
+- `draftFromRecommendation`: unchanged logic, but read from new `workload_profile` (fields already match).
+- Auto-hydrate `modelConfig` (already implemented) keeps working.
+
+## 3. SDLC mapping (`src/lib/sdlcMapping.ts`)
+- Switch from fuzzy `architecture.roles` matching to direct `stage_recommendations` lookup by `stage_name` (case-insensitive match against `SDLC_STAGES[].name`).
+- Fallback chain per tier: `stage_recommendations[stage].models.{tier}_model_id` → `single_model_recommendations[tier].model_id`.
+- Pricing source: `models` catalog (`useModelsStore`) — drop `rec.pricing_information` dependency (use it only if present, else fall back to catalog).
+- `confidence` numeric usage: derive numeric from `rec.confidence.score` (high=0.9, medium=0.7, low=0.5; default 0.8) where currently a number was expected.
+
+## 4. SDLC Plan UI
+
+### Header (`src/components/dashboard/tabs/SdlcPlanTab.tsx`)
+- Remove the model-name pills (`topModel(...)` chip) from the header row. Keep just the tier label + icon: Recommended / Budget / Premium.
+- Remove `topModel` helper.
+
+### Stage row (`src/components/dashboard/sdlc/SdlcStageAccordion.tsx`)
+- In the collapsed header row, replace the three empty `<span />` placeholders under the Recommended / Budget / Premium columns with a small pill showing that stage's `pick.modelName` (fallback `pick.modelId`), colored by tier (matches existing `TIER_TEXT` / `TIER_META` palette).
+- Cost-breakdown card content (Input/Output/Cached tokens, Total Requests, Duration, Projected Cost) stays unchanged.
+
+## 5. Other readers (minimal touch)
+- `RecommendationSummary.tsx`: use `r.why ?? r.reason`.
+- `FinancialTab.tsx` / `ComparePlansTab.tsx`: pricing lookup falls back to `useModelsStore` catalog when `pricing_information` is absent. Display rationale uses `why` first.
+- `RiskPanel.tsx`: replace `rec.confidence` numeric usage with the new score→number mapping helper.
+
+## Out of scope
+- No changes to Model Configuration sidebar, Model Explorer table, or cost formulas.
+- No visual redesign of cost-breakdown cards.
+
+Confirm and I'll implement in one batch.
