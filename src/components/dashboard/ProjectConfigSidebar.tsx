@@ -60,9 +60,9 @@ export function ProjectConfigSidebar() {
   };
 
   return (
-    <aside className="hidden lg:flex flex-col w-[340px] shrink-0 border-l border-white/[0.06] bg-white/[0.02] backdrop-blur-sm sticky top-0 h-screen overflow-y-auto">
-      <div className="flex items-center gap-2 border-b border-white/[0.06] px-5 py-4">
-        <Settings2 className="h-4 w-4 text-cyan-300" />
+    <aside className="hidden lg:flex flex-col w-[340px] shrink-0 border-l border-border bg-muted/40 backdrop-blur-sm sticky top-0 h-screen overflow-y-auto">
+      <div className="flex items-center gap-2 border-b border-border px-5 py-4">
+        <Settings2 className="h-4 w-4 text-primary" />
         <div>
           <div className="text-sm font-semibold">Configuration</div>
           <div className="text-[11px] text-muted-foreground">
@@ -75,7 +75,7 @@ export function ProjectConfigSidebar() {
         <SectionGroup
           open={projectOpen}
           onOpenChange={setProjectOpen}
-          icon={<Settings2 className="h-3.5 w-3.5 text-cyan-300" />}
+          icon={<Settings2 className="h-3.5 w-3.5 text-primary" />}
           title="Project Configuration"
         >
           <div className="space-y-5 px-2 py-3">
@@ -149,7 +149,7 @@ export function ProjectConfigSidebar() {
                         "rounded-full border px-3 py-1.5 text-xs transition-colors " +
                         (active
                           ? "border-cyan-400/40 bg-cyan-400/10 text-cyan-100"
-                          : "border-white/10 bg-white/[0.03] text-muted-foreground hover:text-foreground")
+                          : "border-border bg-muted/40 text-muted-foreground hover:text-foreground")
                       }
                     >
                       {s.label}
@@ -171,10 +171,10 @@ export function ProjectConfigSidebar() {
         </SectionGroup>
       </div>
 
-      <div className="space-y-2 border-t border-white/[0.06] px-5 py-4">
+      <div className="space-y-2 border-t border-border px-5 py-4">
         <Button
           size="sm"
-          className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:opacity-90 text-white"
+          className="w-full bg-gradient-to-r from-primary to-primary/80 hover:opacity-90 text-white"
           onClick={onAnalyze}
         >
           <Play className="mr-1.5 h-3.5 w-3.5" /> Analyze Toolchain
@@ -286,7 +286,7 @@ function SectionGroup({
     <Collapsible
       open={open}
       onOpenChange={onOpenChange}
-      className="rounded-lg border border-white/[0.06] bg-white/[0.02] mb-2"
+      className="rounded-lg border border-border bg-muted/40 mb-2"
     >
       <CollapsibleTrigger className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left">
         <div className="flex items-center gap-2">
@@ -302,7 +302,7 @@ function SectionGroup({
           )}
         />
       </CollapsibleTrigger>
-      <CollapsibleContent className="border-t border-white/[0.06]">
+      <CollapsibleContent className="border-t border-border">
         {children}
       </CollapsibleContent>
     </Collapsible>
@@ -409,7 +409,7 @@ function ToggleRow({
   onChange: (v: boolean) => void;
 }) {
   return (
-    <div className="flex items-center justify-between rounded-md border border-white/[0.06] bg-background/30 px-3 py-2">
+    <div className="flex items-center justify-between rounded-md border border-border bg-background/30 px-3 py-2">
       <span className="text-xs">{label}</span>
       <Switch checked={checked} onCheckedChange={onChange} />
     </div>

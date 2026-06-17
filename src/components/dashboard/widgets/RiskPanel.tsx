@@ -76,7 +76,7 @@ export function RiskPanel() {
                   {b.label} · {Math.round(r.level)}
                 </span>
               </div>
-              <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
+              <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted">
                 <div
                   className={`h-full rounded-full ${b.color}`}
                   style={{ width: `${Math.min(100, r.level)}%` }}

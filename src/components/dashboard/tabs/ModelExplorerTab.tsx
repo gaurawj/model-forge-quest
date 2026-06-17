@@ -271,7 +271,7 @@ export function ModelExplorerTab() {
       <GlassCard className="p-0 overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow className="border-white/[0.06] hover:bg-transparent">
+            <TableRow className="border-border hover:bg-transparent">
               <TableHead className="w-8" />
               <SortableHead label="Model" active={sortKey === "name"} dir={sortDir} onClick={() => toggleSort("name")} />
               <SortableHead label="Provider" active={sortKey === "provider"} dir={sortDir} onClick={() => toggleSort("provider")} />
@@ -288,7 +288,7 @@ export function ModelExplorerTab() {
               return (
                 <Fragment key={m.id}>
                   <TableRow
-                    className="border-white/[0.04] hover:bg-white/[0.03] cursor-pointer"
+                    className="border-border hover:bg-muted/40 cursor-pointer"
                     onClick={() => setExpandedId(isOpen ? null : m.id)}
                   >
                     <TableCell className="w-8 text-muted-foreground">
@@ -299,7 +299,7 @@ export function ModelExplorerTab() {
                       <div className="truncate text-[11px] text-muted-foreground">{m.id}</div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="border-white/10 text-xs text-muted-foreground">
+                      <Badge variant="outline" className="border-border text-xs text-muted-foreground">
                         {m.provider || "—"}
                       </Badge>
                     </TableCell>
@@ -333,7 +333,7 @@ export function ModelExplorerTab() {
                     </TableCell>
                   </TableRow>
                   {isOpen && (
-                    <TableRow className="border-white/[0.04] bg-white/[0.02] hover:bg-white/[0.02]">
+                    <TableRow className="border-border bg-muted/40 hover:bg-muted/40">
                       <TableCell colSpan={8} className="p-0">
                         <ExpandedDetail model={m} cost={cost} workload={workload} />
                       </TableCell>
@@ -388,7 +388,7 @@ function ExpandedDetail({
           value={cost.cache_enabled ? fmtTokens(cost.cached_tokens) : "—"}
           sub={cost.cache_enabled ? fmtCurrency(cost.cached_cost) : undefined}
         />
-        <div className="mt-2 flex items-center justify-between border-t border-white/[0.06] pt-2">
+        <div className="mt-2 flex items-center justify-between border-t border-border pt-2">
           <span className="text-[11px] uppercase tracking-wider text-muted-foreground">Project total</span>
           <span className="text-base font-semibold tabular-nums">{fmtCurrencyShort(cost.total_cost)}</span>
         </div>
@@ -408,7 +408,7 @@ function ExpandedDetail({
 
 function DetailSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-lg border border-white/[0.06] bg-background/30 p-3">
+    <div className="rounded-lg border border-border bg-background/30 p-3">
       <div className="mb-2 text-[10px] uppercase tracking-wider text-muted-foreground">{title}</div>
       <div className="space-y-1.5">{children}</div>
     </div>

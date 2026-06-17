@@ -7,7 +7,7 @@ import type { RecommendationCategory } from "@/lib/types";
 import type { StageRow, StagePick } from "@/lib/sdlcMapping";
 
 const TIER_TEXT: Record<RecommendationCategory, string> = {
-  recommended: "text-cyan-300",
+  recommended: "text-primary",
   budget: "text-emerald-300",
   premium: "text-purple-300",
 };
@@ -32,7 +32,7 @@ export function SdlcStageAccordion({
     <GlassCard className="overflow-hidden">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="grid w-full grid-cols-[1.2fr_1fr_1fr_1fr_auto] items-center gap-4 px-5 py-4 text-left transition-colors hover:bg-white/[0.02]"
+        className="grid w-full grid-cols-[1.2fr_1fr_1fr_1fr_auto] items-center gap-4 px-5 py-4 text-left transition-colors hover:bg-muted/40"
       >
         <div className="text-sm font-semibold">{row.stage.name}</div>
         {tiers.map((t) => {
@@ -61,7 +61,7 @@ export function SdlcStageAccordion({
       </button>
 
       {open && (
-        <div className="grid grid-cols-[1.2fr_1fr_1fr_1fr_auto] gap-4 border-t border-white/[0.06] bg-black/20 px-5 py-5">
+        <div className="grid grid-cols-[1.2fr_1fr_1fr_1fr_auto] gap-4 border-t border-border bg-muted/30 px-5 py-5">
           <div>
             <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
               <ListChecks className="h-3.5 w-3.5" /> AI Thinking Steps
@@ -69,7 +69,7 @@ export function SdlcStageAccordion({
             <ol className="mt-3 space-y-2 text-sm">
               {row.stage.thinkingSteps.map((step, i) => (
                 <li key={i} className="flex gap-3">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-[10px] font-medium text-cyan-300">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-border bg-muted/60 text-[10px] font-medium text-primary">
                     {i + 1}
                   </span>
                   <span className="text-foreground/90">{step}</span>
@@ -96,7 +96,7 @@ function CostBreakdownCard({
   pick: StagePick;
 }) {
   return (
-    <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-4">
+    <div className="rounded-lg border border-border bg-muted/40 p-4">
       <div className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
         <Receipt className="h-3 w-3" /> Cost Breakdown
       </div>
@@ -107,7 +107,7 @@ function CostBreakdownCard({
         <Row label="Total Requests" value={formatNumber(pick.totalRequests)} />
         <Row label="Duration" value={`${pick.durationMonths} mo`} />
       </dl>
-      <div className="mt-3 flex items-center justify-between border-t border-white/[0.06] pt-3">
+      <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
         <span className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
           Projected Cost
         </span>

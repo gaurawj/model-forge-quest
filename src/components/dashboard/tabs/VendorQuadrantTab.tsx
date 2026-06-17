@@ -101,7 +101,7 @@ export function VendorQuadrantTab() {
                 "rounded-full border px-3 py-1.5 text-xs capitalize transition-colors " +
                 (filter === f
                   ? "border-cyan-400/40 bg-cyan-400/10 text-cyan-100"
-                  : "border-white/10 bg-white/[0.03] text-muted-foreground hover:text-foreground")
+                  : "border-border bg-muted/40 text-muted-foreground hover:text-foreground")
               }
             >
               {f === "all" ? "Show All" : `${f} Path`}
@@ -115,7 +115,7 @@ export function VendorQuadrantTab() {
           {/* Quadrant labels */}
           <div className="pointer-events-none absolute inset-0 z-10 grid grid-cols-2 grid-rows-2 px-12 py-8 text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
             <div className="self-start">Visionaries</div>
-            <div className="justify-self-end self-start text-cyan-300/80">Leaders</div>
+            <div className="justify-self-end self-start text-primary/80">Leaders</div>
             <div className="self-end">Niche Players</div>
             <div className="justify-self-end self-end">Challengers</div>
           </div>
@@ -167,7 +167,7 @@ export function VendorQuadrantTab() {
                   if (!active || !payload?.length) return null;
                   const p = payload[0].payload as Vendor;
                   return (
-                    <div className="rounded-lg border border-white/10 bg-black/90 p-3 text-xs">
+                    <div className="rounded-lg border border-border bg-popover text-popover-foreground p-3 text-xs">
                       <div className="font-semibold">{p.name}</div>
                       <div className="text-muted-foreground capitalize">{p.tier} path</div>
                       <div className="mt-1.5">Capability: {p.capability}</div>
@@ -196,7 +196,7 @@ export function VendorQuadrantTab() {
         {data.map((v) => (
           <div
             key={v.modelId}
-            className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3"
+            className="rounded-lg border border-border bg-muted/40 p-3"
           >
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium truncate">{v.name}</span>
