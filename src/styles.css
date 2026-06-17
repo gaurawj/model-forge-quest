@@ -46,55 +46,55 @@
 
 :root {
   --radius: 0.375rem;
-  /* Vercel/Linear dark */
-  --background: oklch(0.145 0 0);              /* #0a0a0a */
-  --foreground: oklch(0.92 0 0);               /* #e5e5e5 */
-  --card: oklch(0.175 0 0);                    /* #111111 */
-  --card-foreground: oklch(0.92 0 0);
-  --popover: oklch(0.175 0 0);
-  --popover-foreground: oklch(0.92 0 0);
-  --primary: oklch(0.62 0.19 256);             /* #3b82f6 */
-  --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.22 0 0);
-  --secondary-foreground: oklch(0.92 0 0);
-  --muted: oklch(0.2 0 0);
-  --muted-foreground: oklch(0.65 0 0);
-  --accent: oklch(0.25 0 0);
-  --accent-foreground: oklch(0.92 0 0);
+  /* Light theme: white base + navy blue / green / orange accents */
+  --background: oklch(1 0 0);                   /* #ffffff */
+  --foreground: oklch(0.22 0.05 260);           /* near-navy ink */
+  --card: oklch(0.995 0.005 250);               /* near-white */
+  --card-foreground: oklch(0.22 0.05 260);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.22 0.05 260);
+  --primary: oklch(0.35 0.13 260);              /* navy blue */
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.96 0.01 250);
+  --secondary-foreground: oklch(0.25 0.06 260);
+  --muted: oklch(0.97 0.008 250);
+  --muted-foreground: oklch(0.5 0.03 260);
+  --accent: oklch(0.72 0.17 55);                /* orange */
+  --accent-foreground: oklch(0.99 0 0);
   --destructive: oklch(0.6 0.22 25);
-  --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.25 0 0);                   /* #1f1f1f-ish */
-  --input: oklch(0.25 0 0);
-  --ring: oklch(0.62 0.19 256);
-  --chart-1: oklch(0.62 0.19 256);             /* blue */
-  --chart-2: oklch(0.7 0.17 162);              /* teal */
-  --chart-3: oklch(0.75 0.18 70);              /* amber */
-  --chart-4: oklch(0.63 0.26 304);             /* purple */
-  --chart-5: oklch(0.65 0.24 16);              /* red */
-  --sidebar: oklch(0.175 0 0);
-  --sidebar-foreground: oklch(0.92 0 0);
-  --sidebar-primary: oklch(0.62 0.19 256);
-  --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.22 0 0);
-  --sidebar-accent-foreground: oklch(0.92 0 0);
-  --sidebar-border: oklch(0.25 0 0);
-  --sidebar-ring: oklch(0.62 0.19 256);
+  --destructive-foreground: oklch(0.99 0 0);
+  --border: oklch(0.9 0.015 250);
+  --input: oklch(0.92 0.012 250);
+  --ring: oklch(0.35 0.13 260);
+  --chart-1: oklch(0.35 0.13 260);              /* navy */
+  --chart-2: oklch(0.62 0.16 152);              /* green */
+  --chart-3: oklch(0.72 0.17 55);               /* orange */
+  --chart-4: oklch(0.55 0.15 230);              /* blue */
+  --chart-5: oklch(0.65 0.24 16);               /* red */
+  --sidebar: oklch(0.985 0.005 250);
+  --sidebar-foreground: oklch(0.22 0.05 260);
+  --sidebar-primary: oklch(0.35 0.13 260);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.95 0.012 250);
+  --sidebar-accent-foreground: oklch(0.25 0.06 260);
+  --sidebar-border: oklch(0.9 0.015 250);
+  --sidebar-ring: oklch(0.35 0.13 260);
 
-  /* Tier accents (Recommended=cyan/blue, Budget=green, Premium=purple/gold) */
-  --tier-recommended-fg: oklch(0.82 0.16 220);
-  --tier-recommended-bg: oklch(0.35 0.12 230 / 0.22);
-  --tier-recommended-border: oklch(0.55 0.18 230 / 0.45);
+  /* Tier accents (Recommended=navy, Budget=green, Premium=orange) */
+  --tier-recommended-fg: oklch(0.35 0.13 260);
+  --tier-recommended-bg: oklch(0.35 0.13 260 / 0.08);
+  --tier-recommended-border: oklch(0.35 0.13 260 / 0.35);
 
-  --tier-budget-fg: oklch(0.85 0.17 160);
-  --tier-budget-bg: oklch(0.35 0.12 160 / 0.22);
-  --tier-budget-border: oklch(0.55 0.18 160 / 0.45);
+  --tier-budget-fg: oklch(0.42 0.13 152);
+  --tier-budget-bg: oklch(0.62 0.16 152 / 0.12);
+  --tier-budget-border: oklch(0.55 0.15 152 / 0.4);
 
-  --tier-premium-fg: oklch(0.82 0.16 305);
-  --tier-premium-bg: oklch(0.35 0.14 305 / 0.22);
-  --tier-premium-border: oklch(0.60 0.20 305 / 0.5);
+  --tier-premium-fg: oklch(0.5 0.17 55);
+  --tier-premium-bg: oklch(0.72 0.17 55 / 0.14);
+  --tier-premium-border: oklch(0.65 0.18 55 / 0.45);
 
-  --glass-bg: oklch(1 0 0 / 0.03);
-  --glass-border: oklch(1 0 0 / 0.06);
+  --glass-bg: oklch(0.35 0.13 260 / 0.03);
+  --glass-border: oklch(0.35 0.13 260 / 0.08);
 }
 
 @layer base {
