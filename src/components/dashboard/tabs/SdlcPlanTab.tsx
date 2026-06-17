@@ -11,17 +11,17 @@ const TIER_META: Record<
 > = {
   recommended: {
     label: "Recommended",
-    pill: "border-cyan-400/40 bg-cyan-400/10 text-cyan-200",
+    pill: "border-primary/40 bg-primary/10 text-primary",
     icon: Sparkles,
   },
   budget: {
     label: "Budget",
-    pill: "border-emerald-400/40 bg-emerald-400/10 text-emerald-200",
+    pill: "border-emerald-500/40 bg-emerald-500/10 text-emerald-700",
     icon: Wallet,
   },
   premium: {
     label: "Premium",
-    pill: "border-purple-400/40 bg-purple-400/10 text-purple-200",
+    pill: "border-orange-500/40 bg-orange-500/10 text-orange-600",
     icon: Crown,
   },
 };

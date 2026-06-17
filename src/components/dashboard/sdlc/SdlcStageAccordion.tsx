@@ -8,14 +8,14 @@ import type { StageRow, StagePick } from "@/lib/sdlcMapping";
 
 const TIER_TEXT: Record<RecommendationCategory, string> = {
   recommended: "text-primary",
-  budget: "text-emerald-300",
-  premium: "text-purple-300",
+  budget: "text-emerald-700",
+  premium: "text-orange-600",
 };
 
 const TIER_PILL: Record<RecommendationCategory, string> = {
-  recommended: "border-cyan-400/40 bg-cyan-400/10 text-cyan-200",
-  budget: "border-emerald-400/40 bg-emerald-400/10 text-emerald-200",
-  premium: "border-purple-400/40 bg-purple-400/10 text-purple-200",
+  recommended: "border-primary/40 bg-primary/10 text-primary",
+  budget: "border-emerald-500/40 bg-emerald-500/10 text-emerald-700",
+  premium: "border-orange-500/40 bg-orange-500/10 text-orange-600",
 };
 
 export function SdlcStageAccordion({

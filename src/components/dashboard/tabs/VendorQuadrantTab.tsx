@@ -100,7 +100,7 @@ export function VendorQuadrantTab() {
               className={
                 "rounded-full border px-3 py-1.5 text-xs capitalize transition-colors " +
                 (filter === f
-                  ? "border-cyan-400/40 bg-cyan-400/10 text-cyan-100"
+                  ? "border-primary/40 bg-primary/10 text-primary"
                   : "border-border bg-muted/40 text-muted-foreground hover:text-foreground")
               }
             >

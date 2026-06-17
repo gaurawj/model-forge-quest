@@ -210,7 +210,7 @@ export function ModelExplorerTab() {
     return (
       <GlassCard className="p-8">
         <div className="flex items-start gap-3">
-          <AlertCircle className="mt-0.5 h-5 w-5 text-amber-400" />
+          <AlertCircle className="mt-0.5 h-5 w-5 text-orange-600" />
           <div>
             <div className="text-sm font-medium">Could not load models</div>
             <div className="mt-1 text-xs text-muted-foreground">
@@ -306,17 +306,17 @@ export function ModelExplorerTab() {
                     <TableCell>
                       <div className="flex flex-wrap gap-1">
                         {m.supports_vision && (
-                          <Badge variant="outline" className="gap-1 border-cyan-400/30 text-cyan-200 text-[10px]">
+                          <Badge variant="outline" className="gap-1 border-primary/30 text-primary text-[10px]">
                             <Eye className="h-3 w-3" /> Vision
                           </Badge>
                         )}
                         {m.supports_tool_calling && (
-                          <Badge variant="outline" className="gap-1 border-emerald-400/30 text-emerald-200 text-[10px]">
+                          <Badge variant="outline" className="gap-1 border-emerald-400/30 text-emerald-700 text-[10px]">
                             <Wrench className="h-3 w-3" /> Tools
                           </Badge>
                         )}
                         {m.supports_reasoning && (
-                          <Badge variant="outline" className="gap-1 border-purple-400/30 text-purple-200 text-[10px]">
+                          <Badge variant="outline" className="gap-1 border-orange-500/30 text-orange-600 text-[10px]">
                             <Brain className="h-3 w-3" /> Reasoning
                           </Badge>
                         )}

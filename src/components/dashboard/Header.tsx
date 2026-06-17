@@ -10,9 +10,9 @@ export function DashboardHeader() {
     status === "connected" ? "Connected" : status === "connecting" ? "Checking" : "Offline";
   const envDot =
     status === "connected"
-      ? "bg-emerald-400"
+      ? "bg-emerald-500"
       : status === "connecting"
-      ? "bg-amber-400 animate-pulse"
+      ? "bg-orange-500 animate-pulse"
       : "bg-zinc-500";
 
   return (
@@ -63,8 +63,8 @@ function Badge({
 }) {
   const tones: Record<string, string> = {
     env: "border-border bg-muted/40 text-foreground/80",
-    ai: "border-cyan-400/30 bg-cyan-400/10 text-cyan-200",
-    ent: "border-purple-400/30 bg-purple-400/10 text-purple-200",
+    ai: "border-primary/30 bg-primary/10 text-primary",
+    ent: "border-orange-500/30 bg-orange-500/10 text-orange-600",
   };
   return (
     <span

@@ -148,7 +148,7 @@ export function ProjectConfigSidebar() {
                       className={
                         "rounded-full border px-3 py-1.5 text-xs transition-colors " +
                         (active
-                          ? "border-cyan-400/40 bg-cyan-400/10 text-cyan-100"
+                          ? "border-primary/40 bg-primary/10 text-primary"
                           : "border-border bg-muted/40 text-muted-foreground hover:text-foreground")
                       }
                     >
@@ -164,7 +164,7 @@ export function ProjectConfigSidebar() {
         <SectionGroup
           open={modelOpen}
           onOpenChange={setModelOpen}
-          icon={<Cpu className="h-3.5 w-3.5 text-purple-300" />}
+          icon={<Cpu className="h-3.5 w-3.5 text-orange-600" />}
           title="Model Configuration"
         >
           <ModelConfigSection />

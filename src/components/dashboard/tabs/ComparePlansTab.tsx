@@ -125,7 +125,7 @@ export function ComparePlansTab() {
           <GlassCard
             key={r.tier}
             className={
-              "p-5 " + (r.tier === "recommended" ? "ring-1 ring-cyan-400/30" : "")
+              "p-5 " + (r.tier === "recommended" ? "ring-1 ring-primary/30" : "")
             }
           >
             <div className="flex items-center justify-between">
@@ -160,7 +160,7 @@ export function ComparePlansTab() {
             <div className="mt-4 space-y-2 border-t border-border pt-3">
               {PROS_CONS[r.tier].pros.map((p) => (
                 <div key={p} className="flex items-start gap-2 text-xs">
-                  <Check className="mt-0.5 h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                  <Check className="mt-0.5 h-3.5 w-3.5 text-emerald-600 shrink-0" />
                   <span>{p}</span>
                 </div>
               ))}
@@ -208,7 +208,7 @@ export function ComparePlansTab() {
 
       <GlassCard className="border-cyan-400/20 bg-gradient-to-r from-cyan-500/5 via-blue-500/5 to-purple-500/5 p-5">
         <div className="flex items-start gap-4">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-400/10 ring-1 ring-cyan-400/30">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 ring-1 ring-primary/30">
             <Trophy className="h-5 w-5 text-primary" />
           </div>
           <div className="flex-1">

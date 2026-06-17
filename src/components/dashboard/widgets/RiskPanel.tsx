@@ -12,8 +12,8 @@ interface Risk {
 
 function band(n: number) {
   if (n >= 70) return { color: "bg-rose-400", text: "text-rose-300", label: "High" };
-  if (n >= 40) return { color: "bg-amber-400", text: "text-amber-300", label: "Medium" };
-  return { color: "bg-emerald-400", text: "text-emerald-300", label: "Low" };
+  if (n >= 40) return { color: "bg-orange-500", text: "text-orange-600", label: "Medium" };
+  return { color: "bg-emerald-500", text: "text-emerald-700", label: "Low" };
 }
 
 export function RiskPanel() {
@@ -57,7 +57,7 @@ export function RiskPanel() {
   return (
     <GlassCard className="p-5">
       <div className="flex items-center gap-2">
-        <ShieldAlert className="h-4 w-4 text-amber-300" />
+        <ShieldAlert className="h-4 w-4 text-orange-600" />
         <div>
           <div className="text-sm font-semibold">Risk Assessment</div>
           <div className="text-xs text-muted-foreground">
