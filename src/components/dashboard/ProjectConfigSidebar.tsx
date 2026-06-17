@@ -174,7 +174,7 @@ export function ProjectConfigSidebar() {
       <div className="space-y-2 border-t border-border px-5 py-4">
         <Button
           size="sm"
-          className="w-full bg-gradient-to-r from-primary to-primary/80 hover:opacity-90 text-white"
+          className="w-full bg-gradient-to-r from-primary to-primary/80 hover:opacity-90 text-primary-foreground"
           onClick={onAnalyze}
         >
           <Play className="mr-1.5 h-3.5 w-3.5" /> Analyze Toolchain
