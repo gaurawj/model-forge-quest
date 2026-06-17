@@ -241,12 +241,12 @@ export function FinancialTab() {
 
 function Kpi({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3">
+    <div className="rounded-lg border border-border bg-muted/40 p-3">
       <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
       <div
         className={
           "mt-1 text-base font-semibold tabular-nums " +
-          (accent ? "bg-gradient-to-r from-cyan-300 to-purple-300 bg-clip-text text-transparent" : "")
+          (accent ? "bg-gradient-to-r from-primary to-orange-500 bg-clip-text text-transparent" : "")
         }
       >
         {value}

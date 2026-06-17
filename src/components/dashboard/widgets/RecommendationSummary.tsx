@@ -31,7 +31,7 @@ export function RecommendationSummary() {
           const r = rec.single_model_recommendations.find((x) => x.category === t);
           const name = models.find((m) => m.id === r?.model_id)?.name ?? r?.model_id ?? "—";
           return (
-            <div key={t} className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3">
+            <div key={t} className="rounded-lg border border-border bg-muted/40 p-3">
               <div className="flex items-center justify-between">
                 <TierBadge tier={t} />
               </div>

@@ -125,7 +125,7 @@ export function ComparePlansTab() {
           <GlassCard
             key={r.tier}
             className={
-              "p-5 " + (r.tier === "recommended" ? "ring-1 ring-cyan-400/30" : "")
+              "p-5 " + (r.tier === "recommended" ? "ring-1 ring-primary/30" : "")
             }
           >
             <div className="flex items-center justify-between">
@@ -142,7 +142,7 @@ export function ComparePlansTab() {
                 <div key={k} className="flex items-center justify-between">
                   <dt className="text-muted-foreground">{k}</dt>
                   <dd className="flex items-center gap-2">
-                    <div className="h-1 w-24 overflow-hidden rounded-full bg-white/[0.06]">
+                    <div className="h-1 w-24 overflow-hidden rounded-full bg-muted">
                       <div
                         className="h-full rounded-full"
                         style={{
@@ -157,16 +157,16 @@ export function ComparePlansTab() {
               ))}
             </dl>
 
-            <div className="mt-4 space-y-2 border-t border-white/[0.06] pt-3">
+            <div className="mt-4 space-y-2 border-t border-border pt-3">
               {PROS_CONS[r.tier].pros.map((p) => (
                 <div key={p} className="flex items-start gap-2 text-xs">
-                  <Check className="mt-0.5 h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                  <Check className="mt-0.5 h-3.5 w-3.5 text-emerald-600 shrink-0" />
                   <span>{p}</span>
                 </div>
               ))}
               {PROS_CONS[r.tier].cons.map((c) => (
                 <div key={c} className="flex items-start gap-2 text-xs text-muted-foreground">
-                  <X className="mt-0.5 h-3.5 w-3.5 text-rose-400 shrink-0" />
+                  <X className="mt-0.5 h-3.5 w-3.5 text-destructive shrink-0" />
                   <span>{c}</span>
                 </div>
               ))}
@@ -206,17 +206,17 @@ export function ComparePlansTab() {
         </div>
       </GlassCard>
 
-      <GlassCard className="border-cyan-400/20 bg-gradient-to-r from-cyan-500/5 via-blue-500/5 to-purple-500/5 p-5">
+      <GlassCard className="border-primary/20 bg-gradient-to-r from-primary/5 via-emerald-500/5 to-orange-500/5 p-5">
         <div className="flex items-start gap-4">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-400/10 ring-1 ring-cyan-400/30">
-            <Trophy className="h-5 w-5 text-cyan-300" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 ring-1 ring-primary/30">
+            <Trophy className="h-5 w-5 text-primary" />
           </div>
           <div className="flex-1">
-            <div className="text-xs uppercase tracking-widest text-cyan-300">
+            <div className="text-xs uppercase tracking-widest text-primary">
               Final Recommendation
             </div>
             <div className="mt-1 text-base font-semibold">
-              Adopt the <span className="text-cyan-300">Recommended</span> toolchain for production use.
+              Adopt the <span className="text-primary">Recommended</span> toolchain for production use.
             </div>
             <p className="mt-1.5 text-sm text-muted-foreground">
               It delivers the best balance of cost, quality, and capability across all SDLC
