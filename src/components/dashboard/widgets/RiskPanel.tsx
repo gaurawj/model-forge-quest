@@ -11,7 +11,7 @@ interface Risk {
 }
 
 function band(n: number) {
-  if (n >= 70) return { color: "bg-rose-400", text: "text-rose-300", label: "High" };
+  if (n >= 70) return { color: "bg-destructive", text: "text-destructive", label: "High" };
   if (n >= 40) return { color: "bg-orange-500", text: "text-orange-600", label: "Medium" };
   return { color: "bg-emerald-500", text: "text-emerald-700", label: "Low" };
 }

@@ -246,7 +246,7 @@ function Kpi({ label, value, accent }: { label: string; value: string; accent?: 
       <div
         className={
           "mt-1 text-base font-semibold tabular-nums " +
-          (accent ? "bg-gradient-to-r from-cyan-300 to-purple-300 bg-clip-text text-transparent" : "")
+          (accent ? "bg-gradient-to-r from-primary to-orange-500 bg-clip-text text-transparent" : "")
         }
       >
         {value}

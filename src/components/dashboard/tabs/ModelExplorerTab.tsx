@@ -311,7 +311,7 @@ export function ModelExplorerTab() {
                           </Badge>
                         )}
                         {m.supports_tool_calling && (
-                          <Badge variant="outline" className="gap-1 border-emerald-400/30 text-emerald-700 text-[10px]">
+                          <Badge variant="outline" className="gap-1 border-emerald-500/40 text-emerald-700 text-[10px]">
                             <Wrench className="h-3 w-3" /> Tools
                           </Badge>
                         )}

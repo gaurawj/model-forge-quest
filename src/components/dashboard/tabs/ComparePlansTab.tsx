@@ -166,7 +166,7 @@ export function ComparePlansTab() {
               ))}
               {PROS_CONS[r.tier].cons.map((c) => (
                 <div key={c} className="flex items-start gap-2 text-xs text-muted-foreground">
-                  <X className="mt-0.5 h-3.5 w-3.5 text-rose-400 shrink-0" />
+                  <X className="mt-0.5 h-3.5 w-3.5 text-destructive shrink-0" />
                   <span>{c}</span>
                 </div>
               ))}
@@ -206,7 +206,7 @@ export function ComparePlansTab() {
         </div>
       </GlassCard>
 
-      <GlassCard className="border-cyan-400/20 bg-gradient-to-r from-cyan-500/5 via-blue-500/5 to-purple-500/5 p-5">
+      <GlassCard className="border-primary/20 bg-gradient-to-r from-primary/5 via-emerald-500/5 to-orange-500/5 p-5">
         <div className="flex items-start gap-4">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 ring-1 ring-primary/30">
             <Trophy className="h-5 w-5 text-primary" />

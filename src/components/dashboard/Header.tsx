@@ -19,9 +19,9 @@ export function DashboardHeader() {
     <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-xl">
       <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4 px-6 py-3">
         <div className="flex items-center gap-3">
-          <div className="relative flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-500/30 via-blue-500/20 to-purple-500/30 ring-1 ring-white/10">
+          <div className="relative flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary/20 via-primary/15 to-orange-500/20 ring-1 ring-border">
             <Brain className="h-4.5 w-4.5 text-primary" />
-            <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-cyan-400/10 to-purple-500/10 blur-md -z-10" />
+            <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-primary/10 to-orange-500/10 blur-md -z-10" />
           </div>
           <div>
             <div className="text-sm font-semibold tracking-tight bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">
